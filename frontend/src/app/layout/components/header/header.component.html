@@ -1,0 +1,33 @@
+<header class="header">
+  <div class="container">
+    <nav class="navbar">
+      <a routerLink="/" class="logo">
+        <h1>FemStep Store</h1>
+      </a>
+      
+      <ul class="nav-links">
+        <li>
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+            Início
+          </a>
+        </li>
+        <li>
+          <a routerLink="/catalog" routerLinkActive="active">
+            Catálogo
+          </a>
+        </li>
+      </ul>
+
+      <div class="nav-actions">
+        <a routerLink="/cart" class="cart-link">
+          <span class="cart-icon">🛒</span>
+          <span class="cart-count">0</span>
+        </a>
+        
+        <a routerLink="/auth/login" class="auth-link">
+          Entrar
+        </a>
+      </div>
+    </nav>
+  </div>
+</header>

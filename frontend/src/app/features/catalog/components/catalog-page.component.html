@@ -1,0 +1,94 @@
+<div class="catalog-page">
+  <div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">Catálogo de Produtos</h1>
+      <p class="page-subtitle">Encontre o calçado perfeito para você</p>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="filters-section">
+      <div class="search-bar">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          placeholder="Buscar produtos..."
+          (keyup.enter)="onSearchSubmit()"
+          class="search-input">
+        <button (click)="onSearchSubmit()" class="search-button">🔍</button>
+      </div>
+
+      <div class="category-filters">
+        <button 
+          class="category-btn" 
+          [class.active]="!selectedCategory"
+          (click)="onCategoryChange(null)">
+          Todos
+        </button>
+        <button 
+          class="category-btn" 
+          [class.active]="selectedCategory === 'saltos'"
+          (click)="onCategoryChange('saltos')">
+          Saltos
+        </button>
+        <button 
+          class="category-btn" 
+          [class.active]="selectedCategory === 'sapatilhas'"
+          (click)="onCategoryChange('sapatilhas')">
+          Sapatilhas
+        </button>
+        <button 
+          class="category-btn" 
+          [class.active]="selectedCategory === 'botas'"
+          (click)="onCategoryChange('botas')">
+          Botas
+        </button>
+        <button 
+          class="category-btn" 
+          [class.active]="selectedCategory === 'sandalias'"
+          (click)="onCategoryChange('sandalias')">
+          Sandálias
+        </button>
+      </div>
+
+      <div class="active-filters" *ngIf="selectedCategory || searchTerm">
+        <span class="filter-label">Filtros ativos:</span>
+        <span class="filter-tag" *ngIf="selectedCategory">
+          {{ getCategoryDisplayName(selectedCategory) }}
+          <button class="remove-filter" (click)="onCategoryChange(null)">×</button>
+        </span>
+        <span class="filter-tag" *ngIf="searchTerm">
+          "{{ searchTerm }}"
+          <button class="remove-filter" (click)="searchTerm = ''; onSearchSubmit()">×</button>
+        </span>
+        <button class="clear-all" (click)="clearFilters()">Limpar todos</button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="isLoading">
+      <app-loading-spinner></app-loading-spinner>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-section" *ngIf="!isLoading">
+      <div class="products-count">
+        <span>{{ products.length }} produtos encontrados</span>
+      </div>
+
+      <div class="products-grid" *ngIf="products.length > 0">
+        <app-product-card 
+          *ngFor="let product of products" 
+          [product]="product">
+        </app-product-card>
+      </div>
+
+      <div class="empty-state" *ngIf="products.length === 0">
+        <div class="empty-icon">🔍</div>
+        <h3>Nenhum produto encontrado</h3>
+        <p>Tente ajustar seus filtros ou buscar por outros termos.</p>
+        <button class="clear-filters-btn" (click)="clearFilters()">Limpar filtros</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,45 @@
+<div class="product-card">
+  <div class="product-image">
+    <img [src]="product.imageUrl || '/assets/images/product-placeholder.jpg'" 
+         [alt]="product.name" 
+         (error)="onImageError($event)">
+    
+    <div class="product-badges">
+      <span class="badge badge-new" *ngIf="product.isNew">Novo</span>
+      <span class="badge badge-sale" *ngIf="product.onSale">Promoção</span>
+    </div>
+
+    <div class="product-actions" *ngIf="showQuickActions">
+      <button class="action-btn quick-view" (click)="onQuickView()" title="Visualização rápida">
+        👁️
+      </button>
+      <button class="action-btn add-to-cart" (click)="onAddToCart()" title="Adicionar ao carrinho">
+        🛒
+      </button>
+    </div>
+  </div>
+
+  <div class="product-info">
+    <h3 class="product-name">{{ product.name }}</h3>
+    <p class="product-category">{{ product.category }}</p>
+    
+    <div class="product-price">
+      <span class="current-price">R$ {{ product.price | number:'1.2-2' }}</span>
+      <span class="original-price" *ngIf="product.originalPrice && product.originalPrice > product.price">
+        R$ {{ product.originalPrice | number:'1.2-2' }}
+      </span>
+    </div>
+
+    <div class="product-sizes" *ngIf="product.availableSizes && product.availableSizes.length > 0">
+      <span class="sizes-label">Tamanhos:</span>
+      <div class="size-options">
+        <span class="size-tag" *ngFor="let size of product.availableSizes.slice(0, 4)">
+          {{ size }}
+        </span>
+        <span class="more-sizes" *ngIf="product.availableSizes.length > 4">
+          +{{ product.availableSizes.length - 4 }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

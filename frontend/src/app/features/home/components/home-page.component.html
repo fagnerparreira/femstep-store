@@ -1,0 +1,82 @@
+<div class="home-page">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">Bem-vinda à FemStep Store</h1>
+        <p class="hero-subtitle">Descubra a coleção mais elegante de sapatos femininos</p>
+        <a routerLink="/catalog" class="cta-button">Ver Catálogo</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Products -->
+  <section class="featured-products">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Produtos em Destaque</h2>
+        <p class="section-subtitle">Nossas melhores escolhas para você</p>
+      </div>
+
+      <div class="loading-container" *ngIf="isLoading">
+        <app-loading-spinner></app-loading-spinner>
+      </div>
+
+      <div class="products-grid" *ngIf="!isLoading">
+        <app-product-card 
+          *ngFor="let product of featuredProducts" 
+          [product]="product">
+        </app-product-card>
+      </div>
+
+      <div class="empty-state" *ngIf="!isLoading && featuredProducts.length === 0">
+        <p>Nenhum produto em destaque no momento.</p>
+        <a routerLink="/catalog" class="link-button">Ver todos os produtos</a>
+      </div>
+
+      <div class="section-footer" *ngIf="!isLoading && featuredProducts.length > 0">
+        <a routerLink="/catalog" class="view-all-button">Ver Todos os Produtos</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Section -->
+  <section class="categories">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Categorias</h2>
+        <p class="section-subtitle">Explore por estilo</p>
+      </div>
+
+      <div class="categories-grid">
+        <a routerLink="/catalog?category=saltos" class="category-card">
+          <div class="category-image">
+            <span class="category-emoji">👠</span>
+          </div>
+          <h3>Saltos</h3>
+        </a>
+
+        <a routerLink="/catalog?category=sapatilhas" class="category-card">
+          <div class="category-image">
+            <span class="category-emoji">👟</span>
+          </div>
+          <h3>Sapatilhas</h3>
+        </a>
+
+        <a routerLink="/catalog?category=botas" class="category-card">
+          <div class="category-image">
+            <span class="category-emoji">👢</span>
+          </div>
+          <h3>Botas</h3>
+        </a>
+
+        <a routerLink="/catalog?category=sandalias" class="category-card">
+          <div class="category-image">
+            <span class="category-emoji">👡</span>
+          </div>
+          <h3>Sandálias</h3>
+        </a>
+      </div>
+    </div>
+  </section>
+</div>

@@ -102,23 +102,36 @@ public class GlobalExceptionHandler {
         }
     }
 
-    public static class ValidationErrorResponse extends ErrorResponse {
+    public static class ValidationErrorResponse {
+        private LocalDateTime timestamp;
+        private int status;
+        private String error;
+        private String message;
         private Map<String, String> validationErrors;
 
         public static ValidationErrorResponseBuilder builder() {
             return new ValidationErrorResponseBuilder();
         }
 
+        // Getters and setters
+        public LocalDateTime getTimestamp() { return timestamp; }
+        public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+        public int getStatus() { return status; }
+        public void setStatus(int status) { this.status = status; }
+        public String getError() { return error; }
+        public void setError(String error) { this.error = error; }
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
         public Map<String, String> getValidationErrors() { return validationErrors; }
         public void setValidationErrors(Map<String, String> validationErrors) { this.validationErrors = validationErrors; }
 
         public static class ValidationErrorResponseBuilder {
             private ValidationErrorResponse errorResponse = new ValidationErrorResponse();
-            public ValidationErrorResponseBuilder timestamp(LocalDateTime timestamp) { errorResponse.setTimestamp(timestamp); return this; }
-            public ValidationErrorResponseBuilder status(int status) { errorResponse.setStatus(status); return this; }
-            public ValidationErrorResponseBuilder error(String error) { errorResponse.setError(error); return this; }
-            public ValidationErrorResponseBuilder message(String message) { errorResponse.setMessage(message); return this; }
-            public ValidationErrorResponseBuilder validationErrors(Map<String, String> validationErrors) { errorResponse.setValidationErrors(validationErrors); return this; }
+            public ValidationErrorResponseBuilder timestamp(LocalDateTime timestamp) { errorResponse.timestamp = timestamp; return this; }
+            public ValidationErrorResponseBuilder status(int status) { errorResponse.status = status; return this; }
+            public ValidationErrorResponseBuilder error(String error) { errorResponse.error = error; return this; }
+            public ValidationErrorResponseBuilder message(String message) { errorResponse.message = message; return this; }
+            public ValidationErrorResponseBuilder validationErrors(Map<String, String> validationErrors) { errorResponse.validationErrors = validationErrors; return this; }
             public ValidationErrorResponse build() { return errorResponse; }
         }
     }
