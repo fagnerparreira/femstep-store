@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { CartItem, Cart } from '../models/cart.model';
 import { Product } from '../models/product.model';
 
@@ -7,15 +8,26 @@ import { Product } from '../models/product.model';
   providedIn: 'root'
 })
 export class CartService {
-  private cartSubject = new BehaviorSubject<Cart>(this.getEmptyCart());
-  cart$ = this.cartSubject.asObservable();
+  private readonly cartSubject = new BehaviorSubject<Cart>(this.getEmptyCart());
+  readonly cart$ = this.cartSubject.asObservable();
+  private readonly isBrowser: boolean;
 
-  constructor() {
-    this.loadCartFromStorage();
+  constructor(@Inject(PLATFORM_ID) platformId: object) {
+    this.isBrowser = isPlatformBrowser(platformId);
+    if (this.isBrowser) {
+      this.loadCartFromStorage();
+    }
   }
 
   addToCart(product: Product, quantity: number = 1, size?: number, color?: string): void {
-    const currentCart = this.cartSubject.value;
+    if (quantity < 1 || product.stock < 1) {
+      return;
+    }
+
+    const currentCart: Cart = {
+      ...this.cartSubject.value,
+      items: this.cartSubject.value.items.map(item => ({ ...item }))
+    };
     const existingItem = currentCart.items.find(item => 
       item.productId === product.id && 
       item.size === size && 
@@ -23,7 +35,7 @@ export class CartService {
     );
 
     if (existingItem) {
-      existingItem.quantity += quantity;
+      existingItem.quantity = Math.min(existingItem.quantity + quantity, product.stock);
     } else {
       const newItem: CartItem = {
         id: Date.now(),
@@ -32,10 +44,11 @@ export class CartService {
         productSlug: product.slug,
         productImage: product.imageUrl,
         price: product.price,
-        quantity: quantity,
-        size: size,
-        color: color,
-        stock: product.stock
+        quantity: Math.min(quantity, product.stock),
+        size,
+        color,
+        stock: product.stock,
+        addedAt: new Date()
       };
       currentCart.items.push(newItem);
     }
@@ -113,6 +126,10 @@ export class CartService {
   }
 
   private loadCartFromStorage(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     const storedCart = localStorage.getItem('cart');
     if (storedCart) {
       try {
@@ -126,7 +143,14 @@ export class CartService {
   }
 
   private saveCartToStorage(): void {
-    const cart = this.cartSubject.value;
-    localStorage.setItem('cart', JSON.stringify(cart));
+    if (!this.isBrowser) {
+      return;
+    }
+
+    try {
+      localStorage.setItem('cart', JSON.stringify(this.cartSubject.value));
+    } catch (error) {
+      console.error('Error saving cart to storage:', error);
+    }
   }
 }

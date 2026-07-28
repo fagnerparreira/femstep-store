@@ -84,6 +84,8 @@ dist
 # Gatsby files
 .cache/
 public
+!frontend/public/
+!frontend/public/**
 
 # Storybook build outputs
 .out
@@ -139,9 +141,6 @@ spy.log
 *.db
 *.sqlite
 *.sqlite3
-
-# Docker
-.dockerignore
 
 # Temporary files
 tmp/

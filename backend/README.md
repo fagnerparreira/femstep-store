@@ -1,51 +1,47 @@
-# FemStep Store - Backend
+# FemStep Store — Backend
 
-Spring Boot 3.x REST API with Java 21.
+API Spring Boot 3.5 com Java 21.
 
-## Features
+## Funcionalidades atuais
 
-- RESTful API architecture
-- JWT authentication and authorization
-- PostgreSQL database with Flyway migrations
-- Comprehensive error handling
-- Input validation and sanitization
+- Cadastro e autenticação com JWT
+- Spring Security
+- Validação de entrada e tratamento global de erros
+- PostgreSQL e migrações Flyway
+- Entidades e repositórios do catálogo
+- Health check em `GET /api/health`
+- OpenAPI/Swagger configurável
 
-## Development
+Os endpoints públicos de catálogo, pedidos e administração ainda fazem parte do
+roadmap.
+
+## Executar
+
+Requer Java 21, Maven 3.6.3 ou superior e PostgreSQL.
 
 ```bash
-# Run application
-./mvnw spring-boot:run
-
-# Run tests
-./mvnw test
-
-# Build JAR
-./mvnw clean package
-
-# Run with specific profile
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-## Architecture
+## Testar e empacotar
 
-- **Config**: Security, database, and web configuration
-- **Controller**: REST endpoints
-- **Service**: Business logic layer
-- **Repository**: Data access layer with Spring Data JPA
-- **Domain**: JPA entities
-- **DTO**: Data transfer objects
-- **Mapper**: Entity ↔ DTO conversion
-- **Security**: JWT implementation
-- **Exception**: Global exception handling
+```bash
+mvn verify
+mvn clean package
+```
 
-## Database
+## Configuração
 
-- PostgreSQL as primary database
-- Flyway for schema migrations
-- Connection pooling with HikariCP
+As credenciais e os segredos são recebidos por variáveis de ambiente. Consulte
+o `.env.example` da raiz. Nunca use os valores de exemplo em produção.
 
-## Profiles
+## Camadas existentes
 
-- `dev`: Development environment
-- `prod`: Production environment
-- `test`: Test environment
+- `config`: segurança e OpenAPI
+- `controller`: autenticação e health check
+- `service`: autenticação e emissão de tokens
+- `repository`: acesso a usuários e catálogo
+- `domain`: entidades JPA
+- `dto`: contratos de autenticação
+- `security`: filtro e serviços JWT
+- `exception`: respostas de erro
