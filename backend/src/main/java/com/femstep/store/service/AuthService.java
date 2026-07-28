@@ -44,7 +44,13 @@ public class AuthService {
 
         String token = jwtService.generateToken(userDetails);
 
-        return new AuthResponse(token, user.getId(), user.getEmail(), user.getFirstName(), user.getLastName());
+        return new AuthResponse(
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getRoles().stream().map(role -> role.getName().name()).toList());
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -75,11 +81,17 @@ public class AuthService {
                         user.getEmail(),
                         user.getPassword(),
                         user.getRoles().stream()
-                                .map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role.getName().name()))
+                                .map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority(role.getName().name()))
                                 .toList()
                 )
         );
 
-        return new AuthResponse(token, user.getId(), user.getEmail(), user.getFirstName(), user.getLastName());
+        return new AuthResponse(
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getRoles().stream().map(role -> role.getName().name()).toList());
     }
 }

@@ -35,7 +35,8 @@ export class CartService {
         quantity: quantity,
         size: size,
         color: color,
-        stock: product.stock
+        stock: product.stock,
+        addedAt: new Date()
       };
       currentCart.items.push(newItem);
     }

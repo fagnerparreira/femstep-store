@@ -1,7 +1,5 @@
 server:
   port: ${BACKEND_PORT:8080}
-  servlet:
-    context-path: /api
 
 spring:
   application:
@@ -12,7 +10,7 @@ spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:femstep_store}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:password}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     
   jpa:
@@ -29,17 +27,21 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     
-  security:
-    jwt:
-      secret: ${JWT_SECRET:default-secret-key-change-in-production}
-      expiration: ${JWT_EXPIRATION:86400000}
+security:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION:86400000}
 
 # OpenAPI Configuration
 springdoc:
   api-docs:
     path: /api-docs
+    enabled: ${SPRINGDOC_ENABLED:false}
   swagger-ui:
     path: /swagger-ui.html
+    enabled: ${SPRINGDOC_ENABLED:false}
     operations-sorter: method
 
 # Management Endpoints
@@ -56,5 +58,5 @@ management:
 logging:
   level:
     com.femstep.store: INFO
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
     org.flywaydb: INFO

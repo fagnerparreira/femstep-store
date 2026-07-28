@@ -1,77 +1,52 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { User } from '../models/user.model';
+import { HttpClient } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { BehaviorSubject, map, Observable, tap } from 'rxjs';
+import { AuthResponse, RegisterRequest, User } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly apiUrl = '/api/auth';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
 
   currentUser$ = this.currentUserSubject.asObservable();
   isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
-  constructor() {
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(PLATFORM_ID) private readonly platformId: object
+  ) {
     this.checkAuthStatus();
   }
 
   login(email: string, password: string): Observable<User> {
-    // TODO: Implement actual API call
-    return new Observable(observer => {
-      // Mock login for now
-      setTimeout(() => {
-        const mockUser: User = {
-          id: 1,
-          email: email,
-          firstName: 'Maria',
-          lastName: 'Silva',
-          cpf: '123.456.789-00',
-          active: true,
-          roles: ['ROLE_CUSTOMER']
-        };
-
-        this.currentUserSubject.next(mockUser);
-        this.isLoggedInSubject.next(true);
-        localStorage.setItem('currentUser', JSON.stringify(mockUser));
-        
-        observer.next(mockUser);
-        observer.complete();
-      }, 1000);
-    });
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/login`, { email, password })
+      .pipe(
+        tap(response => this.storeSession(response)),
+        map(response => this.toUser(response))
+      );
   }
 
-  register(userData: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    cpf: string;
-  }): Observable<User> {
-    // TODO: Implement actual API call
-    return new Observable(observer => {
-      setTimeout(() => {
-        const newUser: User = {
-          id: Date.now(),
-          email: userData.email,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          cpf: userData.cpf,
-          active: true,
-          roles: ['ROLE_CUSTOMER']
-        };
-
-        observer.next(newUser);
-        observer.complete();
-      }, 1000);
-    });
+  register(userData: RegisterRequest): Observable<User> {
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/register`, userData)
+      .pipe(
+        tap(response => this.storeSession(response)),
+        map(response => this.toUser(response))
+      );
   }
 
   logout(): void {
     this.currentUserSubject.next(null);
     this.isLoggedInSubject.next(false);
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('authToken');
+    if (isPlatformBrowser(this.platformId)) {
+      sessionStorage.removeItem('currentUser');
+      sessionStorage.removeItem('authToken');
+    }
   }
 
   getCurrentUser(): User | null {
@@ -88,11 +63,44 @@ export class AuthService {
   }
 
   private checkAuthStatus(): void {
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const storedUser = sessionStorage.getItem('currentUser');
+    const authToken = sessionStorage.getItem('authToken');
+    if (!storedUser || !authToken) {
+      return;
+    }
+
+    try {
+      const user = JSON.parse(storedUser) as User;
       this.currentUserSubject.next(user);
       this.isLoggedInSubject.next(true);
+    } catch {
+      this.logout();
     }
+  }
+
+  private storeSession(response: AuthResponse): void {
+    const user = this.toUser(response);
+    this.currentUserSubject.next(user);
+    this.isLoggedInSubject.next(true);
+
+    if (isPlatformBrowser(this.platformId)) {
+      sessionStorage.setItem('authToken', response.token);
+      sessionStorage.setItem('currentUser', JSON.stringify(user));
+    }
+  }
+
+  private toUser(response: AuthResponse): User {
+    return {
+      id: response.userId,
+      email: response.email,
+      firstName: response.firstName,
+      lastName: response.lastName,
+      active: true,
+      roles: response.roles
+    };
   }
 }

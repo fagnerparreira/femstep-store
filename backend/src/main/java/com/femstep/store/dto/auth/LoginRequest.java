@@ -2,6 +2,7 @@ package com.femstep.store.dto.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class LoginRequest {
     
@@ -10,6 +11,7 @@ public class LoginRequest {
     private String email;
     
     @NotBlank(message = "Password is required")
+    @Size(max = 128, message = "Password should not exceed 128 characters")
     private String password;
 
     public LoginRequest() {}

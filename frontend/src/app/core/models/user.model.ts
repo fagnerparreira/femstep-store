@@ -24,7 +24,11 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  user: User;
   token: string;
-  expiresIn: number;
+  type: 'Bearer';
+  userId: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  roles: string[];
 }

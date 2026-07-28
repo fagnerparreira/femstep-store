@@ -17,17 +17,18 @@ spring:
     enabled: true
     locations: classpath:db/migration
     
-  web:
-    cors:
-      allowed-origins: "http://localhost:4200,http://localhost:3000"
-      allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
-      allowed-headers: "*"
-      allow-credentials: true
-
 security:
+  cors:
+    allowed-origins: "http://localhost:4200,http://localhost:3000"
   jwt:
-    secret: local-dev-secret-key-not-for-production
+    secret: local-dev-only-secret-key-with-32-bytes-minimum
     expiration: 86400000
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
 
 logging:
   level:
