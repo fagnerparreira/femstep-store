@@ -1,33 +1,30 @@
-# FemStep Store - Documentation
+# Documentação do FemStep Store
 
-Complete documentation for the FemStep Store e-commerce platform.
+Esta pasta registra o estado real e as próximas decisões do projeto.
 
-## Documentation Structure
+## Arquitetura atual
 
-### API Documentation
-- **OpenAPI Specification**: `/api/openapi.yaml`
-- REST API endpoints and schemas
-- Authentication flows
+```text
+Navegador
+   │
+   ▼
+Nginx / Angular ── /api ──► Spring Boot ──► PostgreSQL
+```
 
-### Architecture Documentation
-- **System Overview**: `/architecture/overview.md`
-- **Database Schema**: `/architecture/database-schema.md`
-- **Authentication Flow**: `/architecture/authentication-flow.md`
+- O frontend pode ser executado como aplicação Angular ou servido pelo Nginx.
+- O Nginx encaminha `/api` para o serviço `backend` no Docker Compose.
+- O backend controla autenticação, persistência e migrações.
+- O PostgreSQL mantém os dados em um volume local.
 
-### Deployment Documentation
-- **Docker Setup**: `/deployment/docker.md`
-- **Production Deployment**: `/deployment/production.md`
-- **Environment Setup**: `/deployment/environment-setup.md`
+## Decisões pendentes
 
-## Getting Started
+1. Definir o contrato da API pública de produtos.
+2. Criar DTOs que não exponham entidades JPA.
+3. Adicionar paginação, busca e filtros no backend.
+4. Implementar testes de integração com Testcontainers.
+5. Definir provedor de pagamento somente após o fluxo de pedidos.
 
-1. Read the main project README.md
-2. Review the architecture overview
-3. Check deployment documentation for your target environment
+## Princípio de manutenção
 
-## Contributing to Documentation
-
-- Keep documentation up-to-date with code changes
-- Use clear examples and code snippets
-- Follow markdown formatting standards
-- Include diagrams where helpful
+A documentação deve descrever apenas arquivos e funcionalidades existentes.
+Novos documentos serão adicionados junto com a implementação correspondente.

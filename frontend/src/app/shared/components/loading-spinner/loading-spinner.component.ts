@@ -9,7 +9,5 @@ import { Component, Input } from '@angular/core';
   styleUrls: ['./loading-spinner.component.scss']
 })
 export class LoadingSpinnerComponent {
-  @Input() loadingText = '';
-
-  constructor() { }
+  @Input() loadingText = 'Carregando...';
 }

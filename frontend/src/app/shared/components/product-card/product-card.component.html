@@ -10,10 +10,14 @@
     </div>
 
     <div class="product-actions" *ngIf="showQuickActions">
-      <button class="action-btn quick-view" (click)="onQuickView()" title="Visualização rápida">
-        👁️
-      </button>
-      <button class="action-btn add-to-cart" (click)="onAddToCart()" title="Adicionar ao carrinho">
+      <button
+        class="action-btn add-to-cart"
+        type="button"
+        (click)="onAddToCart()"
+        [disabled]="product.stock < 1"
+        [attr.aria-label]="'Adicionar ' + product.name + ' ao carrinho'"
+        title="Adicionar ao carrinho"
+      >
         🛒
       </button>
     </div>

@@ -1,7 +1,4 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:15
     container_name: ${POSTGRES_CONTAINER_NAME:-femstep-postgres}
@@ -16,8 +13,12 @@ services:
     networks:
       - femstep-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_NAME:-femstep_store}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Spring Boot Backend
   backend:
     build:
       context: ./backend
@@ -35,35 +36,34 @@ services:
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - femstep-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/api/health || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 30s
 
-  # Angular Frontend
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: ${FRONTEND_CONTAINER_NAME:-femstep-frontend}
-    environment:
-      API_BASE_URL: http://backend:8080/api
     ports:
-      - "${FRONTEND_PORT:-4200}:80"
+      - "127.0.0.1:${FRONTEND_PORT:-4200}:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - femstep-network
     restart: unless-stopped
 
 volumes:
   postgres_data:
-    driver: local
 
 networks:
   femstep-network:
