@@ -11,6 +11,7 @@ public class AuthResponse {
     private String firstName;
     private String lastName;
     private List<String> roles;
+    private long expiresIn;
 
     public AuthResponse() {}
 
@@ -20,13 +21,15 @@ public class AuthResponse {
             String email,
             String firstName,
             String lastName,
-            List<String> roles) {
+            List<String> roles,
+            long expiresIn) {
         this.token = token;
         this.userId = userId;
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
         this.roles = roles;
+        this.expiresIn = expiresIn;
     }
 
     public String getToken() {
@@ -83,5 +86,13 @@ public class AuthResponse {
 
     public void setRoles(List<String> roles) {
         this.roles = roles;
+    }
+
+    public long getExpiresIn() {
+        return expiresIn;
+    }
+
+    public void setExpiresIn(long expiresIn) {
+        this.expiresIn = expiresIn;
     }
 }

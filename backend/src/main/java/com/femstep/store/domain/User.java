@@ -1,6 +1,7 @@
 package com.femstep.store.domain;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,6 +26,12 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     private Boolean active = true;
+
+    @Column(name = "email_verified_at")
+    private LocalDateTime emailVerifiedAt;
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -81,6 +88,22 @@ public class User extends BaseEntity {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public LocalDateTime getEmailVerifiedAt() {
+        return emailVerifiedAt;
+    }
+
+    public void setEmailVerifiedAt(LocalDateTime emailVerifiedAt) {
+        this.emailVerifiedAt = emailVerifiedAt;
+    }
+
+    public LocalDateTime getLastLoginAt() {
+        return lastLoginAt;
+    }
+
+    public void setLastLoginAt(LocalDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
     }
 
     public Set<Role> getRoles() {
