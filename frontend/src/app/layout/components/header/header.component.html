@@ -1,33 +1,69 @@
+<div class="announcement">
+  <div class="container announcement-content">
+    <span>10% de desconto na primeira compra</span>
+    <span class="announcement-divider" aria-hidden="true"></span>
+    <span>Frete grátis a partir de R$ 299</span>
+  </div>
+</div>
+
 <header class="header">
   <div class="container">
-    <nav class="navbar">
-      <a routerLink="/" class="logo">
-        <h1>FemStep Store</h1>
+    <div class="navbar">
+      <a routerLink="/" class="logo" aria-label="FemStep Store — página inicial">
+        <span class="logo-mark">F</span>
+        <span>
+          <strong>FemStep</strong>
+          <small>STORE</small>
+        </span>
       </a>
-      
-      <ul class="nav-links">
-        <li>
-          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-            Início
-          </a>
-        </li>
-        <li>
-          <a routerLink="/catalog" routerLinkActive="active">
-            Catálogo
-          </a>
-        </li>
-      </ul>
 
-      <div class="nav-actions">
-        <a routerLink="/cart" class="cart-link">
-          <span class="cart-icon">🛒</span>
-          <span class="cart-count">0</span>
+      <form class="search" role="search" (ngSubmit)="submitSearch()">
+        <label class="sr-only" for="store-search">Buscar produtos</label>
+        <input
+          id="store-search"
+          name="search"
+          type="search"
+          [(ngModel)]="searchTerm"
+          placeholder="O que você procura?"
+          autocomplete="off"
+        >
+        <button type="submit">Buscar</button>
+      </form>
+
+      <nav class="nav-actions" aria-label="Ações da conta">
+        <ng-container *ngIf="currentUser$ | async as user; else loginLink">
+          <a routerLink="/account" class="nav-action">
+            <span class="nav-action-label">Olá, {{ user.firstName }}</span>
+            <strong>Minha conta</strong>
+          </a>
+          <a *ngIf="user.roles.includes('ROLE_ADMIN')" routerLink="/admin" class="nav-action">
+            <span class="nav-action-label">Gestão</span>
+            <strong>Painel</strong>
+          </a>
+          <button type="button" class="logout-button" (click)="logout()">Sair</button>
+        </ng-container>
+
+        <ng-template #loginLink>
+          <a routerLink="/auth/login" class="nav-action">
+            <span class="nav-action-label">Boas-vindas</span>
+            <strong>Entrar</strong>
+          </a>
+        </ng-template>
+
+        <a routerLink="/cart" class="cart-link" aria-label="Abrir sacola">
+          <span>Sacola</span>
+          <strong class="cart-count">{{ (cart$ | async)?.totalItems ?? 0 }}</strong>
         </a>
-        
-        <a routerLink="/auth/login" class="auth-link">
-          Entrar
-        </a>
-      </div>
+      </nav>
+    </div>
+
+    <nav class="category-nav" aria-label="Navegação principal">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Início</a>
+      <a routerLink="/catalog" routerLinkActive="active">Todos os sapatos</a>
+      <a routerLink="/catalog" [queryParams]="{ category: 'saltos' }">Saltos</a>
+      <a routerLink="/catalog" [queryParams]="{ category: 'sapatilhas' }">Sapatilhas</a>
+      <a routerLink="/catalog" [queryParams]="{ category: 'botas' }">Botas</a>
+      <a routerLink="/catalog" [queryParams]="{ category: 'sandalias' }">Sandálias</a>
     </nav>
   </div>
 </header>
