@@ -1,0 +1,26 @@
+.order-page { min-height: 70vh; padding: 36px 0 80px; background: #fbfaf8; }
+.breadcrumb { display: flex; gap: 8px; color: #776c63; font-size: 14px; margin-bottom: 36px; }
+.eyebrow { color: #a45d3c; font-size: 12px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+header h1 { font-family: Georgia, serif; font-size: clamp(34px, 5vw, 54px); font-weight: 500; margin: 8px 0; }
+header { margin-bottom: 30px; }
+.payment-card, .items, aside { background: #fff; border: 1px solid #e9e2dc; border-radius: 17px; padding: 26px; }
+.payment-card { display: grid; gap: 18px; margin-bottom: 28px; }
+.payment-card.pending { border-left: 5px solid #bd7a38; }
+.payment-card.approved { border-left: 5px solid #62814b; background: #f8fbf5; }
+.payment-card h2 { font-family: Georgia, serif; font-weight: 500; margin: 5px 0; }
+.pix-code { display: flex; gap: 10px; align-items: center; }
+.pix-code code { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; padding: 13px; background: #f5f1ed; border-radius: 8px; }
+.pix-code button, .approve-button { border: 1px solid #35251f; border-radius: 999px; padding: 11px 17px; background: #fff; cursor: pointer; white-space: nowrap; }
+.approve-button { justify-self: start; background: #35251f; color: #fff; font-weight: 700; }
+.cancel-button { justify-self: start; border: 0; background: transparent; color: #a12622; text-decoration: underline; cursor: pointer; }
+.detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; }
+.items h2, aside h2 { font-family: Georgia, serif; font-weight: 500; margin-top: 0; }
+.items article { display: grid; grid-template-columns: 90px 1fr auto; gap: 18px; align-items: center; padding: 18px 0; border-top: 1px solid #eee7e1; }
+.items img { width: 90px; height: 90px; object-fit: cover; border-radius: 10px; background: #f2efec; }
+.items p { color: #776c63; margin: 7px 0; }
+.items small, aside small { color: #776c63; }
+aside p { display: flex; justify-content: space-between; }
+aside .total { border-top: 1px solid #eee7e1; padding-top: 17px; font-size: 20px; }
+.error { color: #a12622; }
+@media (max-width: 800px) { .detail-layout { grid-template-columns: 1fr; } .pix-code { align-items: stretch; flex-direction: column; } }
+@media (max-width: 560px) { .items article { grid-template-columns: 70px 1fr; } .items article > strong { grid-column: 2; } }
