@@ -1,45 +1,97 @@
 import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { CartItem, Cart } from '../models/cart.model';
+import {
+  BehaviorSubject,
+  catchError,
+  concatMap,
+  distinctUntilChanged,
+  from,
+  map,
+  Observable,
+  of,
+  tap
+} from 'rxjs';
+import { Cart } from '../models/cart.model';
 import { Product } from '../models/product.model';
+import { AuthService } from './auth.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+interface ApiCartItem {
+  id: number;
+  productId: number;
+  variantId: number;
+  productName: string;
+  productSlug: string;
+  productImage: string;
+  price: number;
+  quantity: number;
+  size: number;
+  color: string;
+  availableStock: number;
+  lineTotal: number;
+}
+
+interface ApiCart {
+  id: number;
+  items: ApiCartItem[];
+  subtotal: number;
+  totalItems: number;
+}
+
+@Injectable({ providedIn: 'root' })
 export class CartService {
-  private readonly cartSubject = new BehaviorSubject<Cart>(this.getEmptyCart());
-  readonly cart$ = this.cartSubject.asObservable();
+  private readonly apiUrl = '/api/cart';
+  private readonly cartSubject = new BehaviorSubject<Cart>(this.emptyCart());
   private readonly isBrowser: boolean;
+  readonly cart$ = this.cartSubject.asObservable();
 
-  constructor(@Inject(PLATFORM_ID) platformId: object) {
+  constructor(
+    @Inject(PLATFORM_ID) platformId: object,
+    private readonly http: HttpClient,
+    private readonly authService: AuthService
+  ) {
     this.isBrowser = isPlatformBrowser(platformId);
-    if (this.isBrowser) {
-      this.loadCartFromStorage();
-    }
+    this.loadGuestCart();
+    this.authService.isLoggedIn$
+      .pipe(distinctUntilChanged())
+      .subscribe(isLoggedIn => {
+        if (isLoggedIn) {
+          this.synchronizeGuestCart();
+        } else {
+          this.loadGuestCart();
+        }
+      });
   }
 
-  addToCart(product: Product, quantity: number = 1, size?: number, color?: string): void {
+  addToCart(
+    product: Product,
+    quantity = 1,
+    size?: number,
+    color?: string,
+    variantId?: number
+  ): Observable<Cart> {
     if (quantity < 1 || product.stock < 1) {
-      return;
+      return of(this.cartSubject.value);
+    }
+    if (this.authService.isAuthenticated() && variantId) {
+      return this.http
+        .post<ApiCart>(`${this.apiUrl}/items`, { variantId, quantity })
+        .pipe(map(cart => this.storeApiCart(cart)));
     }
 
-    const currentCart: Cart = {
-      ...this.cartSubject.value,
-      items: this.cartSubject.value.items.map(item => ({ ...item }))
-    };
-    const existingItem = currentCart.items.find(item => 
-      item.productId === product.id && 
-      item.size === size && 
-      item.color === color
+    const currentCart = this.cloneCart();
+    const existingItem = currentCart.items.find(item =>
+      item.productId === product.id
+      && item.size === size
+      && item.color === color
     );
-
     if (existingItem) {
       existingItem.quantity = Math.min(existingItem.quantity + quantity, product.stock);
     } else {
-      const newItem: CartItem = {
+      currentCart.items.push({
         id: Date.now(),
         productId: product.id,
+        variantId,
         productName: product.name,
         productSlug: product.slug,
         productImage: product.imageUrl,
@@ -49,72 +101,131 @@ export class CartService {
         color,
         stock: product.stock,
         addedAt: new Date()
-      };
-      currentCart.items.push(newItem);
+      });
     }
-
-    this.updateCart(currentCart);
+    this.updateGuestCart(currentCart);
+    return of(currentCart);
   }
 
-  removeFromCart(itemId: number): void {
-    const currentCart = this.cartSubject.value;
-    currentCart.items = currentCart.items.filter(item => item.id !== itemId);
-    this.updateCart(currentCart);
+  refresh(): Observable<Cart> {
+    if (!this.authService.isAuthenticated()) {
+      return of(this.cartSubject.value);
+    }
+    return this.http.get<ApiCart>(this.apiUrl).pipe(map(cart => this.storeApiCart(cart)));
   }
 
-  updateQuantity(itemId: number, quantity: number): void {
-    const currentCart = this.cartSubject.value;
-    const item = currentCart.items.find(item => item.id === itemId);
-    
+  removeFromCart(itemId: number): Observable<Cart> {
+    if (this.authService.isAuthenticated()) {
+      return this.http
+        .delete<ApiCart>(`${this.apiUrl}/items/${itemId}`)
+        .pipe(map(cart => this.storeApiCart(cart)));
+    }
+    const cart = this.cloneCart();
+    cart.items = cart.items.filter(item => item.id !== itemId);
+    this.updateGuestCart(cart);
+    return of(cart);
+  }
+
+  updateQuantity(itemId: number, quantity: number): Observable<Cart> {
+    if (quantity <= 0) {
+      return this.removeFromCart(itemId);
+    }
+    if (this.authService.isAuthenticated()) {
+      return this.http
+        .patch<ApiCart>(`${this.apiUrl}/items/${itemId}`, { quantity })
+        .pipe(map(cart => this.storeApiCart(cart)));
+    }
+    const cart = this.cloneCart();
+    const item = cart.items.find(candidate => candidate.id === itemId);
     if (item) {
-      if (quantity <= 0) {
-        this.removeFromCart(itemId);
-      } else {
-        item.quantity = quantity;
-        this.updateCart(currentCart);
-      }
+      item.quantity = Math.min(quantity, item.stock);
+      this.updateGuestCart(cart);
     }
+    return of(cart);
   }
 
-  clearCart(): void {
-    this.cartSubject.next(this.getEmptyCart());
-    this.saveCartToStorage();
+  clearCart(): Observable<Cart> {
+    if (this.authService.isAuthenticated()) {
+      return this.http.delete<ApiCart>(this.apiUrl).pipe(map(cart => this.storeApiCart(cart)));
+    }
+    const cart = this.emptyCart();
+    this.cartSubject.next(cart);
+    this.saveGuestCart();
+    return of(cart);
   }
 
   getCartItemCount(): number {
-    return this.cartSubject.value.items.reduce((total: number, item: CartItem) => total + item.quantity, 0);
+    return this.cartSubject.value.totalItems;
   }
 
   getCartTotal(): number {
-    return this.cartSubject.value.items.reduce((total: number, item: CartItem) => total + (item.price * item.quantity), 0);
+    return this.cartSubject.value.totalAmount;
   }
 
   isInCart(productId: number, size?: number, color?: string): boolean {
-    return this.cartSubject.value.items.some(item => 
-      item.productId === productId && 
-      item.size === size && 
-      item.color === color
+    return this.cartSubject.value.items.some(item =>
+      item.productId === productId && item.size === size && item.color === color
     );
   }
 
-  private updateCart(cart: Cart): void {
-    cart.totalAmount = this.calculateTotal(cart.items);
-    cart.totalItems = this.calculateTotalItems(cart.items);
-    cart.updatedAt = new Date();
-    
+  private synchronizeGuestCart(): void {
+    const guestItems = this.cartSubject.value.items.filter(item => item.variantId);
+    if (!guestItems.length) {
+      this.refresh().pipe(catchError(() => of(this.cartSubject.value))).subscribe();
+      return;
+    }
+    from(guestItems).pipe(
+      concatMap(item => this.http.post<ApiCart>(`${this.apiUrl}/items`, {
+        variantId: item.variantId,
+        quantity: item.quantity
+      })),
+      tap(cart => this.storeApiCart(cart)),
+      catchError(() => this.refresh())
+    ).subscribe({
+      complete: () => this.removeGuestStorage()
+    });
+  }
+
+  private storeApiCart(apiCart: ApiCart): Cart {
+    const cart: Cart = {
+      id: apiCart.id,
+      items: apiCart.items.map(item => ({
+        id: item.id,
+        productId: item.productId,
+        variantId: item.variantId,
+        productName: item.productName,
+        productSlug: item.productSlug,
+        productImage: item.productImage,
+        price: item.price,
+        quantity: item.quantity,
+        size: item.size,
+        color: item.color,
+        stock: item.availableStock,
+        lineTotal: item.lineTotal
+      })),
+      totalAmount: apiCart.subtotal,
+      totalItems: apiCart.totalItems
+    };
     this.cartSubject.next(cart);
-    this.saveCartToStorage();
+    return cart;
   }
 
-  private calculateTotal(items: CartItem[]): number {
-    return items.reduce((total: number, item: CartItem) => total + (item.price * item.quantity), 0);
+  private cloneCart(): Cart {
+    return {
+      ...this.cartSubject.value,
+      items: this.cartSubject.value.items.map(item => ({ ...item }))
+    };
   }
 
-  private calculateTotalItems(items: CartItem[]): number {
-    return items.reduce((total: number, item: CartItem) => total + item.quantity, 0);
+  private updateGuestCart(cart: Cart): void {
+    cart.totalAmount = cart.items.reduce((total, item) => total + item.price * item.quantity, 0);
+    cart.totalItems = cart.items.reduce((total, item) => total + item.quantity, 0);
+    cart.updatedAt = new Date();
+    this.cartSubject.next(cart);
+    this.saveGuestCart();
   }
 
-  private getEmptyCart(): Cart {
+  private emptyCart(): Cart {
     return {
       id: Date.now(),
       items: [],
@@ -125,32 +236,32 @@ export class CartService {
     };
   }
 
-  private loadCartFromStorage(): void {
+  private loadGuestCart(): void {
     if (!this.isBrowser) {
       return;
     }
-
-    const storedCart = localStorage.getItem('cart');
-    if (storedCart) {
-      try {
-        const cart = JSON.parse(storedCart);
-        this.cartSubject.next(cart);
-      } catch (error) {
-        console.error('Error loading cart from storage:', error);
-        this.cartSubject.next(this.getEmptyCart());
-      }
+    const storedCart = localStorage.getItem('femstep_guest_cart');
+    if (!storedCart) {
+      this.cartSubject.next(this.emptyCart());
+      return;
+    }
+    try {
+      this.cartSubject.next(JSON.parse(storedCart) as Cart);
+    } catch {
+      this.removeGuestStorage();
+      this.cartSubject.next(this.emptyCart());
     }
   }
 
-  private saveCartToStorage(): void {
-    if (!this.isBrowser) {
-      return;
+  private saveGuestCart(): void {
+    if (this.isBrowser) {
+      localStorage.setItem('femstep_guest_cart', JSON.stringify(this.cartSubject.value));
     }
+  }
 
-    try {
-      localStorage.setItem('cart', JSON.stringify(this.cartSubject.value));
-    } catch (error) {
-      console.error('Error saving cart to storage:', error);
+  private removeGuestStorage(): void {
+    if (this.isBrowser) {
+      localStorage.removeItem('femstep_guest_cart');
     }
   }
 }

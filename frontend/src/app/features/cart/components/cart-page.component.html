@@ -1,0 +1,76 @@
+<main class="cart-page">
+  <div class="container" *ngIf="cart$ | async as cart">
+    <nav class="breadcrumb"><a routerLink="/">Início</a><span>/</span><span>Sacola</span></nav>
+    <header>
+      <span class="eyebrow">Sua seleção</span>
+      <h1>Sacola de compras</h1>
+      <p>{{ cart.totalItems }} {{ cart.totalItems === 1 ? 'item' : 'itens' }}</p>
+    </header>
+
+    <div class="empty-cart" *ngIf="!cart.items.length">
+      <span>Está tudo tão leve por aqui.</span>
+      <h2>Sua sacola está vazia</h2>
+      <p>Explore a coleção e encontre o par que combina com você.</p>
+      <a routerLink="/catalog" class="primary-button">Ver sapatos</a>
+    </div>
+
+    <div class="cart-layout" *ngIf="cart.items.length">
+      <section class="items" aria-label="Itens da sacola">
+        <article class="cart-item" *ngFor="let item of cart.items">
+          <a [routerLink]="['/product', item.productSlug]" class="item-image">
+            <img [src]="item.productImage" [alt]="item.productName">
+          </a>
+          <div class="item-info">
+            <a [routerLink]="['/product', item.productSlug]"><h2>{{ item.productName }}</h2></a>
+            <p>Tamanho {{ item.size }} · {{ item.color }}</p>
+            <strong>{{ item.price | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong>
+            <div class="item-actions">
+              <label>
+                <span>Quantidade</span>
+                <select
+                  [value]="item.quantity"
+                  [disabled]="isUpdating"
+                  (change)="changeQuantity(item.id, +$any($event.target).value)">
+                  <option *ngFor="let quantity of [1,2,3,4,5,6,7,8,9,10]" [value]="quantity">
+                    {{ quantity }}
+                  </option>
+                </select>
+              </label>
+              <button type="button" [disabled]="isUpdating" (click)="remove(item.id)">Remover</button>
+            </div>
+          </div>
+          <strong class="line-total">
+            {{ (item.lineTotal ?? item.price * item.quantity) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </strong>
+        </article>
+        <button class="clear-button" type="button" [disabled]="isUpdating" (click)="clear()">
+          Limpar sacola
+        </button>
+      </section>
+
+      <aside class="summary">
+        <span class="eyebrow">Resumo</span>
+        <div><span>Subtotal</span><strong>{{ cart.totalAmount | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></div>
+        <div><span>Frete</span><span>Calculado no checkout</span></div>
+        <p>Os preços e o estoque serão confirmados com segurança antes do pagamento.</p>
+        <a
+          *ngIf="authService.isAuthenticated(); else loginToBuy"
+          routerLink="/checkout"
+          class="checkout-button">
+          Ir para o checkout
+        </a>
+        <ng-template #loginToBuy>
+          <a
+            routerLink="/auth/login"
+            [queryParams]="{ returnUrl: '/checkout' }"
+            class="checkout-button">
+            Entrar para finalizar
+          </a>
+        </ng-template>
+        <a routerLink="/catalog" class="continue-link">Continuar comprando</a>
+      </aside>
+    </div>
+
+    <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+  </div>
+</main>

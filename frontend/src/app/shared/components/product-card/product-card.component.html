@@ -1,49 +1,38 @@
-<div class="product-card">
-  <div class="product-image">
-    <img [src]="product.imageUrl || '/assets/images/product-placeholder.jpg'" 
-         [alt]="product.name" 
-         (error)="onImageError($event)">
-    
+<article class="product-card">
+  <a class="product-image" [routerLink]="['/product', product.slug]">
+    <img
+      [src]="product.imageUrl || '/assets/images/product-placeholder.svg'"
+      [alt]="product.imageAlt || product.name"
+      loading="lazy"
+      (error)="onImageError($event)"
+    >
+
     <div class="product-badges">
       <span class="badge badge-new" *ngIf="product.isNew">Novo</span>
-      <span class="badge badge-sale" *ngIf="product.onSale">Promoção</span>
+      <span class="badge badge-sale" *ngIf="product.onSale">Oferta</span>
     </div>
 
-    <div class="product-actions" *ngIf="showQuickActions">
-      <button
-        class="action-btn add-to-cart"
-        type="button"
-        (click)="onAddToCart()"
-        [disabled]="product.stock < 1"
-        [attr.aria-label]="'Adicionar ' + product.name + ' ao carrinho'"
-        title="Adicionar ao carrinho"
-      >
-        🛒
-      </button>
-    </div>
-  </div>
+    <span class="view-product" *ngIf="showQuickActions">Ver produto</span>
+  </a>
 
   <div class="product-info">
-    <h3 class="product-name">{{ product.name }}</h3>
-    <p class="product-category">{{ product.category }}</p>
-    
+    <a class="product-category" [routerLink]="['/catalog']" [queryParams]="{ category: product.categorySlug }">
+      {{ product.category }}
+    </a>
+    <h3 class="product-name">
+      <a [routerLink]="['/product', product.slug]">{{ product.name }}</a>
+    </h3>
+
     <div class="product-price">
-      <span class="current-price">R$ {{ product.price | number:'1.2-2' }}</span>
       <span class="original-price" *ngIf="product.originalPrice && product.originalPrice > product.price">
-        R$ {{ product.originalPrice | number:'1.2-2' }}
+        {{ product.originalPrice | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
       </span>
+      <span class="current-price">{{ product.price | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+      <span class="installments">ou 6x de {{ product.price / 6 | currency:'BRL':'symbol':'1.2-2':'pt-BR' }} sem juros</span>
     </div>
 
-    <div class="product-sizes" *ngIf="product.availableSizes && product.availableSizes.length > 0">
-      <span class="sizes-label">Tamanhos:</span>
-      <div class="size-options">
-        <span class="size-tag" *ngFor="let size of product.availableSizes.slice(0, 4)">
-          {{ size }}
-        </span>
-        <span class="more-sizes" *ngIf="product.availableSizes.length > 4">
-          +{{ product.availableSizes.length - 4 }}
-        </span>
-      </div>
+    <div class="product-sizes" *ngIf="product.availableSizes.length">
+      <span *ngFor="let size of product.availableSizes.slice(0, 8)">{{ size }}</span>
     </div>
   </div>
-</div>
+</article>

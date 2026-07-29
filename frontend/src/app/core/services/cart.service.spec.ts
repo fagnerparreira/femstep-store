@@ -1,7 +1,10 @@
+import { provideHttpClient } from '@angular/common/http';
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { BehaviorSubject } from 'rxjs';
 import { Product } from '../models/product.model';
 import { CartService } from './cart.service';
+import { AuthService } from './auth.service';
 
 const product: Product = {
   id: 1,
@@ -27,6 +30,14 @@ describe('CartService', () => {
     TestBed.configureTestingModule({
       providers: [
         CartService,
+        provideHttpClient(),
+        {
+          provide: AuthService,
+          useValue: {
+            isLoggedIn$: new BehaviorSubject(false),
+            isAuthenticated: () => false
+          }
+        },
         { provide: PLATFORM_ID, useValue: 'browser' }
       ]
     });

@@ -2,12 +2,16 @@ export interface Product {
   id: number;
   name: string;
   slug: string;
-  description: string;
+  description?: string;
+  shortDescription?: string;
   price: number;
   originalPrice?: number;
   imageUrl: string;
+  imageAlt?: string;
   category: string;
   categorySlug: string;
+  material?: string;
+  brand?: string;
   featured: boolean;
   active: boolean;
   isNew?: boolean;
@@ -15,17 +19,21 @@ export interface Product {
   availableSizes: number[];
   availableColors: string[];
   stock: number;
+  variants?: ProductVariant[];
+  images?: ProductImage[];
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export interface ProductVariant {
   id: number;
-  productId: number;
+  productId?: number;
   sku: string;
   size: number;
   color: string;
-  stock: number;
+  stock?: number;
+  availableStock: number;
+  price: number;
   priceOverride?: number;
   active: boolean;
 }
@@ -56,4 +64,13 @@ export interface ProductSearchResult {
   currentPage: number;
   totalPages: number;
   pageSize: number;
+  first: boolean;
+  last: boolean;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
 }
