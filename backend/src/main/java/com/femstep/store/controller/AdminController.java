@@ -3,6 +3,8 @@ package com.femstep.store.controller;
 import com.femstep.store.dto.admin.AdminDashboardResponse;
 import com.femstep.store.dto.admin.AdminCouponRequest;
 import com.femstep.store.dto.admin.AdminCouponResponse;
+import com.femstep.store.dto.admin.AdminCategoryRequest;
+import com.femstep.store.dto.admin.AdminCategoryResponse;
 import com.femstep.store.dto.admin.AdminOrderResponse;
 import com.femstep.store.dto.admin.AdminProductRequest;
 import com.femstep.store.dto.admin.AdminProductResponse;
@@ -125,6 +127,38 @@ public class AdminController {
             @RequestBody ToggleProductRequest request
     ) {
         return adminService.toggleCoupon(couponId, request.active(), authentication.getName());
+    }
+
+    @GetMapping("/categories")
+    public List<AdminCategoryResponse> categories() {
+        return adminService.categories();
+    }
+
+    @PostMapping("/categories")
+    @ResponseStatus(HttpStatus.CREATED)
+    public AdminCategoryResponse createCategory(
+            Authentication authentication,
+            @Valid @RequestBody AdminCategoryRequest request
+    ) {
+        return adminService.createCategory(request, authentication.getName());
+    }
+
+    @PutMapping("/categories/{categoryId}")
+    public AdminCategoryResponse updateCategory(
+            Authentication authentication,
+            @PathVariable Long categoryId,
+            @Valid @RequestBody AdminCategoryRequest request
+    ) {
+        return adminService.updateCategory(categoryId, request, authentication.getName());
+    }
+
+    @PatchMapping("/categories/{categoryId}/active")
+    public AdminCategoryResponse toggleCategory(
+            Authentication authentication,
+            @PathVariable Long categoryId,
+            @RequestBody ToggleProductRequest request
+    ) {
+        return adminService.toggleCategory(categoryId, request.active(), authentication.getName());
     }
 
     public record ToggleProductRequest(boolean active) {

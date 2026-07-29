@@ -319,6 +319,51 @@ class CommerceFlowIntegrationTest {
     }
 
     @Test
+    void administratorCanManageAnEmptyCategory() throws Exception {
+        String bearer = registerAdminBearer(uniqueEmail("category-admin"));
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        String slug = "teste-" + suffix;
+        String request = objectMapper.writeValueAsString(Map.of(
+                "name", "Categoria Teste",
+                "slug", slug,
+                "description", "Categoria criada pela integração",
+                "active", true
+        ));
+
+        JsonNode created = json(mockMvc.perform(post("/api/admin/categories")
+                        .header(HttpHeaders.AUTHORIZATION, bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString());
+        long categoryId = created.path("id").asLong();
+        assertThat(created.path("products").asLong()).isZero();
+
+        JsonNode updated = json(mockMvc.perform(put("/api/admin/categories/{categoryId}", categoryId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "name", "Categoria Atualizada",
+                                "slug", slug,
+                                "description", "Atualizada",
+                                "active", true
+                        ))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(updated.path("name").asText()).isEqualTo("Categoria Atualizada");
+
+        JsonNode disabled = json(mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/api/admin/categories/{categoryId}/active", categoryId)
+                                .header(HttpHeaders.AUTHORIZATION, bearer)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"active\":false}"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(disabled.path("active").asBoolean()).isFalse();
+    }
+
+    @Test
     void concurrentCheckoutsCannotSellTheLastUnitTwice() throws Exception {
         long variantId = variantId("tenis-nuvem");
         String firstBearer = registerBearer(uniqueEmail("stock-a"));

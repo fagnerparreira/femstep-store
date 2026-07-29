@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import {
   AdminDashboard,
   AdminCoupon,
+  AdminCategory,
   AdminOrder,
   AdminProduct,
   AdminService
@@ -30,8 +31,10 @@ export class AdminPageComponent implements OnInit {
   orders: AdminOrder[] = [];
   categories: Category[] = [];
   coupons: AdminCoupon[] = [];
-  activeSection: 'overview' | 'products' | 'orders' | 'coupons' = 'overview';
+  adminCategories: AdminCategory[] = [];
+  activeSection: 'overview' | 'products' | 'orders' | 'coupons' | 'categories' = 'overview';
   editingCouponId: number | null = null;
+  editingCategoryId: number | null = null;
   expandedProductId: number | null = null;
   trackingCodes: Record<string, string> = {};
   isSubmitting = false;
@@ -68,6 +71,13 @@ export class AdminPageComponent implements OnInit {
     active: [true]
   });
 
+  readonly categoryForm = this.formBuilder.nonNullable.group({
+    name: ['', Validators.required],
+    slug: ['', [Validators.required, Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)]],
+    description: [''],
+    active: [true]
+  });
+
   ngOnInit(): void {
     this.reload();
     this.productService.getCategories().subscribe(categories => {
@@ -83,11 +93,71 @@ export class AdminPageComponent implements OnInit {
     this.adminService.products().subscribe(value => this.products = value);
     this.adminService.orders().subscribe(value => this.orders = value);
     this.adminService.coupons().subscribe(value => this.coupons = value);
+    this.adminService.categories().subscribe(value => this.adminCategories = value);
   }
 
-  setSection(section: 'overview' | 'products' | 'orders' | 'coupons'): void {
+  setSection(section: 'overview' | 'products' | 'orders' | 'coupons' | 'categories'): void {
     this.activeSection = section;
     this.clearMessages();
+  }
+
+  generateCategorySlug(): void {
+    this.categoryForm.controls.slug.setValue(
+      this.slug(this.categoryForm.controls.name.value)
+    );
+  }
+
+  saveCategory(): void {
+    this.clearMessages();
+    if (this.categoryForm.invalid || this.isSubmitting) {
+      this.categoryForm.markAllAsTouched();
+      this.errorMessage = 'Revise os dados da categoria.';
+      return;
+    }
+    const value = this.categoryForm.getRawValue();
+    const request = {
+      name: value.name.trim(),
+      slug: value.slug.trim(),
+      description: value.description.trim() || undefined,
+      active: value.active
+    };
+    this.isSubmitting = true;
+    const operation = this.editingCategoryId
+      ? this.adminService.updateCategory(this.editingCategoryId, request)
+      : this.adminService.createCategory(request);
+    operation.subscribe({
+      next: () => {
+        this.message = this.editingCategoryId ? 'Categoria atualizada.' : 'Categoria criada.';
+        this.isSubmitting = false;
+        this.editingCategoryId = null;
+        this.categoryForm.reset({ active: true });
+        this.reloadCategories();
+      },
+      error: error => this.handleError(error)
+    });
+  }
+
+  editCategory(category: AdminCategory): void {
+    this.editingCategoryId = category.id;
+    this.categoryForm.reset({
+      name: category.name,
+      slug: category.slug,
+      description: category.description ?? '',
+      active: category.active
+    });
+  }
+
+  toggleCategory(category: AdminCategory): void {
+    this.clearMessages();
+    this.adminService.toggleCategory(category.id, !category.active).subscribe({
+      next: updated => {
+        this.adminCategories = this.adminCategories.map(item =>
+          item.id === updated.id ? updated : item
+        );
+        this.reloadPublicCategories();
+      },
+      error: error => this.handleError(error)
+    });
   }
 
   saveCoupon(): void {
@@ -302,6 +372,23 @@ export class AdminPageComponent implements OnInit {
       endsAt: this.dateInput(new Date(Date.now() + 30 * 86_400_000)),
       active: true
     });
+  }
+
+  private reloadCategories(): void {
+    this.adminService.categories().subscribe(value => this.adminCategories = value);
+    this.reloadPublicCategories();
+  }
+
+  private reloadPublicCategories(): void {
+    this.productService.refreshCategories().subscribe(categories => this.categories = categories);
+  }
+
+  private slug(value: string): string {
+    return value.normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
   }
 
   private dateInput(date: Date): string {

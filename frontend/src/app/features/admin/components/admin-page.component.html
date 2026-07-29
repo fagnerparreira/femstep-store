@@ -10,6 +10,7 @@
       <button [class.active]="activeSection === 'products'" (click)="setSection('products')">Produtos</button>
       <button [class.active]="activeSection === 'orders'" (click)="setSection('orders')">Pedidos</button>
       <button [class.active]="activeSection === 'coupons'" (click)="setSection('coupons')">Cupons</button>
+      <button [class.active]="activeSection === 'categories'" (click)="setSection('categories')">Categorias</button>
     </nav>
 
     <p class="success" *ngIf="message">{{ message }}</p>
@@ -109,6 +110,35 @@
             <span>
               <button type="button" (click)="editCoupon(coupon)">Editar</button>
               <button type="button" (click)="toggleCoupon(coupon)">{{ coupon.active ? 'Desativar' : 'Ativar' }}</button>
+            </span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="products-section" *ngIf="activeSection === 'categories'">
+      <form class="product-form" [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+        <div class="section-title"><div><span class="eyebrow">Organização</span><h2>{{ editingCategoryId ? 'Editar categoria' : 'Nova categoria' }}</h2></div></div>
+        <div class="form-grid">
+          <label>Nome<input formControlName="name" (blur)="generateCategorySlug()"></label>
+          <label>Slug<input formControlName="slug"></label>
+          <label class="wide">Descrição<input formControlName="description"></label>
+          <label class="checkbox"><input formControlName="active" type="checkbox">Categoria ativa</label>
+        </div>
+        <button class="primary" type="submit" [disabled]="isSubmitting">{{ isSubmitting ? 'Salvando...' : (editingCategoryId ? 'Atualizar categoria' : 'Criar categoria') }}</button>
+      </form>
+
+      <div class="catalog-table">
+        <div class="section-title"><div><span class="eyebrow">Categorias</span><h2>Organização do catálogo</h2></div><strong>{{ adminCategories.length }} itens</strong></div>
+        <article class="product-row" *ngFor="let category of adminCategories">
+          <div class="product-main">
+            <span><strong>{{ category.name }}</strong><small>{{ category.slug }} · {{ category.description || 'Sem descrição' }}</small></span>
+            <span>{{ category.products }} produto(s)</span>
+            <span></span>
+            <span class="badge" [class.inactive]="!category.active">{{ category.active ? 'Ativa' : 'Inativa' }}</span>
+            <span>
+              <button type="button" (click)="editCategory(category)">Editar</button>
+              <button type="button" (click)="toggleCategory(category)">{{ category.active ? 'Desativar' : 'Ativar' }}</button>
             </span>
           </div>
         </article>

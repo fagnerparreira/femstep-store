@@ -76,6 +76,10 @@ export class ProductService {
     return this.categories$;
   }
 
+  refreshCategories(): Observable<Category[]> {
+    return this.http.get<Category[]>(`${this.apiUrl}/categories`);
+  }
+
   getProductPage(query: ProductQuery = {}): Observable<ProductSearchResult> {
     let params = new HttpParams()
       .set('page', query.page ?? 0)

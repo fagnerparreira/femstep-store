@@ -3,6 +3,8 @@ package com.femstep.store.service;
 import com.femstep.store.dto.admin.AdminDashboardResponse;
 import com.femstep.store.dto.admin.AdminCouponRequest;
 import com.femstep.store.dto.admin.AdminCouponResponse;
+import com.femstep.store.dto.admin.AdminCategoryRequest;
+import com.femstep.store.dto.admin.AdminCategoryResponse;
 import com.femstep.store.dto.admin.AdminOrderResponse;
 import com.femstep.store.dto.admin.AdminProductRequest;
 import com.femstep.store.dto.admin.AdminProductResponse;
@@ -387,6 +389,123 @@ public class AdminService {
         }
         audit(adminEmail, active ? "ACTIVATE_COUPON" : "DEACTIVATE_COUPON", "COUPON", couponId, null);
         return coupon(couponId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminCategoryResponse> categories() {
+        return jdbcTemplate.query("""
+                        SELECT c.id, c.name, c.slug, c.description, c.active,
+                               count(p.id) AS products
+                        FROM categories c
+                        LEFT JOIN products p ON p.category_id = c.id
+                        GROUP BY c.id
+                        ORDER BY c.name, c.id
+                        """,
+                (rs, rowNum) -> new AdminCategoryResponse(
+                        rs.getLong("id"),
+                        rs.getString("name"),
+                        rs.getString("slug"),
+                        rs.getString("description"),
+                        rs.getBoolean("active"),
+                        rs.getLong("products")
+                ));
+    }
+
+    @Transactional
+    public AdminCategoryResponse createCategory(
+            AdminCategoryRequest request,
+            String adminEmail
+    ) {
+        try {
+            Long categoryId = jdbcTemplate.queryForObject("""
+                    INSERT INTO categories (name, slug, description, active)
+                    VALUES (?, ?, ?, ?)
+                    RETURNING id
+                    """,
+                    Long.class,
+                    request.name().trim(),
+                    request.slug().trim(),
+                    blankToNull(request.description()),
+                    request.active()
+            );
+            audit(adminEmail, "CREATE_CATEGORY", "CATEGORY", categoryId, request.slug());
+            return category(categoryId);
+        } catch (DuplicateKeyException exception) {
+            throw new ConflictException("Já existe uma categoria com este slug");
+        }
+    }
+
+    @Transactional
+    public AdminCategoryResponse updateCategory(
+            Long categoryId,
+            AdminCategoryRequest request,
+            String adminEmail
+    ) {
+        if (!request.active()) {
+            ensureCategoryCanBeDeactivated(categoryId);
+        }
+        try {
+            int updated = jdbcTemplate.update("""
+                    UPDATE categories
+                    SET name = ?, slug = ?, description = ?, active = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    request.name().trim(),
+                    request.slug().trim(),
+                    blankToNull(request.description()),
+                    request.active(),
+                    categoryId
+            );
+            if (updated != 1) {
+                throw new ResourceNotFoundException("Categoria não encontrada");
+            }
+            audit(adminEmail, "UPDATE_CATEGORY", "CATEGORY", categoryId, request.slug());
+            return category(categoryId);
+        } catch (DuplicateKeyException exception) {
+            throw new ConflictException("Já existe uma categoria com este slug");
+        }
+    }
+
+    @Transactional
+    public AdminCategoryResponse toggleCategory(
+            Long categoryId,
+            boolean active,
+            String adminEmail
+    ) {
+        if (!active) {
+            ensureCategoryCanBeDeactivated(categoryId);
+        }
+        int updated = jdbcTemplate.update(
+                "UPDATE categories SET active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                active,
+                categoryId
+        );
+        if (updated != 1) {
+            throw new ResourceNotFoundException("Categoria não encontrada");
+        }
+        audit(adminEmail, active ? "ACTIVATE_CATEGORY" : "DEACTIVATE_CATEGORY", "CATEGORY", categoryId, null);
+        return category(categoryId);
+    }
+
+    private void ensureCategoryCanBeDeactivated(Long categoryId) {
+        Long activeProducts = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM products WHERE category_id = ? AND active = true",
+                Long.class,
+                categoryId
+        );
+        if (activeProducts != null && activeProducts > 0) {
+            throw new BusinessRuleException(
+                    "Desative ou mova os produtos ativos antes de desativar a categoria"
+            );
+        }
+    }
+
+    private AdminCategoryResponse category(Long categoryId) {
+        return categories().stream()
+                .filter(item -> item.id().equals(categoryId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
     }
 
     private AdminCouponResponse coupon(Long couponId) {

@@ -78,6 +78,17 @@ export interface AdminCoupon {
 
 export type AdminCouponRequest = Omit<AdminCoupon, 'id' | 'uses'>;
 
+export interface AdminCategory {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  active: boolean;
+  products: number;
+}
+
+export type AdminCategoryRequest = Omit<AdminCategory, 'id' | 'products'>;
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly http = inject(HttpClient);
@@ -139,6 +150,31 @@ export class AdminService {
   toggleCoupon(couponId: number, active: boolean): Observable<AdminCoupon> {
     return this.http.patch<AdminCoupon>(
       `${this.apiUrl}/coupons/${couponId}/active`,
+      { active }
+    );
+  }
+
+  categories(): Observable<AdminCategory[]> {
+    return this.http.get<AdminCategory[]>(`${this.apiUrl}/categories`);
+  }
+
+  createCategory(request: AdminCategoryRequest): Observable<AdminCategory> {
+    return this.http.post<AdminCategory>(`${this.apiUrl}/categories`, request);
+  }
+
+  updateCategory(
+    categoryId: number,
+    request: AdminCategoryRequest
+  ): Observable<AdminCategory> {
+    return this.http.put<AdminCategory>(
+      `${this.apiUrl}/categories/${categoryId}`,
+      request
+    );
+  }
+
+  toggleCategory(categoryId: number, active: boolean): Observable<AdminCategory> {
+    return this.http.patch<AdminCategory>(
+      `${this.apiUrl}/categories/${categoryId}/active`,
       { active }
     );
   }
