@@ -18,11 +18,16 @@ spring:
     locations: classpath:db/migration
     
 security:
+  cookies:
+    secure: false
   cors:
     allowed-origins: "http://localhost:4200,http://localhost:3000"
   jwt:
     secret: local-dev-only-secret-key-with-32-bytes-minimum
-    expiration: 86400000
+    expiration: 900000
+
+payments:
+  sandbox-enabled: true
 
 springdoc:
   api-docs:
