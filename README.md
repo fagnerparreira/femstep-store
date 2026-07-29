@@ -15,8 +15,11 @@ e painel administrativo.
 - PIX e cartão em ambiente sandbox, sem coleta de dados bancários reais
 - Reserva de estoque, expiração automática, baixa após pagamento e cancelamento
 - Histórico e detalhe dos pedidos
-- Cadastro e gerenciamento de endereços
-- Painel administrativo com métricas, produtos, variações, estoque e pedidos
+- Cadastro e gerenciamento de endereços, com preenchimento opcional pelo ViaCEP
+- Favoritos persistentes e perfil editável
+- Painel administrativo com métricas, produtos, variações, estoque, pedidos e cupons
+- Contratos isolados para pagamento e frete, com adaptadores locais substituíveis
+- Outbox transacional para notificações de pedido, pagamento e envio
 - Catálogo inicial com 12 produtos, 6 categorias, imagens e cupom `BEMVINDA10`
 - Migrações Flyway e teste de integração completo com PostgreSQL/Testcontainers
 
@@ -115,6 +118,7 @@ Configure `ADMIN_EMAIL` e `ADMIN_PASSWORD`, entre com essa conta e abra
 - ajustar o estoque por SKU;
 - mover pedidos pagos para preparação, envio e entrega;
 - registrar código de rastreio no envio.
+- criar, editar, ativar e desativar cupons sem apagar o histórico.
 
 ## Produção
 
@@ -131,6 +135,18 @@ Antes de vender de verdade:
 
 O sandbox entregue é totalmente funcional para desenvolvimento e homologação,
 mas não movimenta dinheiro real.
+
+### Limites conscientes do ambiente local
+
+- `SandboxPaymentGateway` não aceita dados bancários reais e falha de forma segura
+  quando `PAYMENTS_SANDBOX_ENABLED=false`.
+- `FixedShippingGateway` calcula apenas uma estimativa local. Um provedor real deve
+  implementar `ShippingGateway`.
+- eventos de e-mail são gravados em `notification_outbox` na mesma transação do
+  pedido. O envio externo depende da escolha e das credenciais do serviço
+  transacional; nenhum token ou segredo é embutido no código.
+- ativação de Mercado Pago, Melhor Envio e e-mail exige contas sandbox próprias,
+  CEP de origem e credenciais fornecidas por variáveis/secret manager.
 
 O planejamento técnico completo está em
 [`docs/PLANO_IMPLEMENTACAO_ECOMMERCE.md`](docs/PLANO_IMPLEMENTACAO_ECOMMERCE.md).

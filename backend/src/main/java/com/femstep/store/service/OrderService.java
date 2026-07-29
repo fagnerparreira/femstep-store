@@ -8,7 +8,8 @@ import com.femstep.store.dto.order.OrderResponse;
 import com.femstep.store.dto.order.ShippingAddressRequest;
 import com.femstep.store.exception.BusinessRuleException;
 import com.femstep.store.exception.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Value;
+import com.femstep.store.integration.payment.PaymentGateway;
+import com.femstep.store.integration.shipping.ShippingGateway;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,16 +25,20 @@ import java.util.UUID;
 @Service
 public class OrderService {
 
-    private static final BigDecimal FREE_SHIPPING_THRESHOLD = new BigDecimal("299.00");
-
     private final JdbcTemplate jdbcTemplate;
-    private final boolean sandboxEnabled;
+    private final PaymentGateway paymentGateway;
+    private final ShippingGateway shippingGateway;
+    private final NotificationOutboxService notificationOutboxService;
 
     public OrderService(
             JdbcTemplate jdbcTemplate,
-            @Value("${payments.sandbox-enabled:false}") boolean sandboxEnabled) {
+            PaymentGateway paymentGateway,
+            ShippingGateway shippingGateway,
+            NotificationOutboxService notificationOutboxService) {
         this.jdbcTemplate = jdbcTemplate;
-        this.sandboxEnabled = sandboxEnabled;
+        this.paymentGateway = paymentGateway;
+        this.shippingGateway = shippingGateway;
+        this.notificationOutboxService = notificationOutboxService;
     }
 
     @Transactional(readOnly = true)
@@ -169,30 +174,34 @@ public class OrderService {
                     """, pricing.coupon().id(), user.id(), orderId, pricing.discount());
         }
 
-        String pixCode = request.paymentMethod().equals("PIX")
-                ? "00020126580014BR.GOV.BCB.PIX0136" + orderNumber + "5204000053039865802BR5907FEMSTEP6009SAOPAULO62070503***6304DEMO"
-                : null;
+        PaymentGateway.PaymentIntent payment = paymentGateway.create(
+                orderNumber,
+                request.paymentMethod(),
+                pricing.total(),
+                "pay-" + request.idempotencyKey()
+        );
         jdbcTemplate.update("""
                 INSERT INTO payments (
                     order_id, provider, method, status, amount,
                     installments, idempotency_key, pix_qr_code, expires_at
-                ) VALUES (?, 'SANDBOX', ?, 'PENDING', ?, ?, ?, ?, CURRENT_TIMESTAMP + INTERVAL '30 minutes')
+                ) VALUES (?, ?, ?, 'PENDING', ?, ?, ?, ?, CURRENT_TIMESTAMP + INTERVAL '30 minutes')
                 """,
                 orderId,
-                request.paymentMethod(),
+                payment.provider(),
+                payment.method(),
                 pricing.total(),
-                request.paymentMethod().equals("SANDBOX_CARD") ? 1 : null,
+                payment.installments(),
                 "pay-" + request.idempotencyKey(),
-                pixCode
+                payment.pixCode()
         );
 
         jdbcTemplate.update(
                 "UPDATE carts SET status = 'CONVERTED', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
                 cart.id()
         );
+        notificationOutboxService.enqueueOrderEvent("ORDER_CREATED", orderId, user.id());
 
-        if (request.paymentMethod().equals("SANDBOX_CARD")) {
-            requireSandbox();
+        if (payment.autoApprove()) {
             approvePayment(user.id(), orderId);
         }
         return orderById(user.id(), orderId);
@@ -224,7 +233,7 @@ public class OrderService {
 
     @Transactional
     public OrderResponse sandboxApprove(String email, String orderNumber) {
-        requireSandbox();
+        paymentGateway.requireManualApproval();
         Long userId = user(email).id();
         Long orderId = jdbcTemplate.query("""
                         SELECT id FROM orders
@@ -370,6 +379,7 @@ public class OrderService {
                     order_id, previous_status, new_status, reason, changed_by_user_id
                 ) VALUES (?, 'PENDING_PAYMENT', 'PAID', 'Pagamento aprovado no ambiente sandbox', ?)
                 """, orderId, userId);
+        notificationOutboxService.enqueueOrderEvent("PAYMENT_APPROVED", orderId, userId);
     }
 
     private CartSnapshot cart(Long userId, boolean lockItems) {
@@ -442,20 +452,14 @@ public class OrderService {
         }
         Coupon coupon = coupon(userId, couponCode, subtotal);
         BigDecimal discount = coupon == null ? BigDecimal.ZERO : coupon.discount(subtotal);
-        BigDecimal shipping = subtotal.compareTo(FREE_SHIPPING_THRESHOLD) >= 0
-                ? BigDecimal.ZERO
-                : address.state().equalsIgnoreCase("SP")
-                    ? new BigDecimal("19.90")
-                    : new BigDecimal("29.90");
-        int days = address.state().equalsIgnoreCase("SP") ? 4 : 7;
-        String service = shipping.signum() == 0 ? "Entrega econômica grátis" : "Entrega econômica";
+        ShippingGateway.ShippingQuote quote = shippingGateway.quote(subtotal, address);
         return new Pricing(
                 coupon,
                 discount,
-                shipping,
-                subtotal.subtract(discount).add(shipping).max(BigDecimal.ZERO),
-                service,
-                days
+                quote.price(),
+                subtotal.subtract(discount).add(quote.price()).max(BigDecimal.ZERO),
+                quote.service(),
+                quote.estimatedDays()
         );
     }
 
@@ -590,14 +594,6 @@ public class OrderService {
                 header.createdAt(),
                 items
         );
-    }
-
-    private void requireSandbox() {
-        if (!sandboxEnabled) {
-            throw new BusinessRuleException(
-                    "O pagamento sandbox está desativado. Configure um provedor de pagamentos."
-            );
-        }
     }
 
     private String newOrderNumber() {

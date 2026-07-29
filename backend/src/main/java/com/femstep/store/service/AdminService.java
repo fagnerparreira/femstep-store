@@ -29,9 +29,14 @@ public class AdminService {
     );
 
     private final JdbcTemplate jdbcTemplate;
+    private final NotificationOutboxService notificationOutboxService;
 
-    public AdminService(JdbcTemplate jdbcTemplate) {
+    public AdminService(
+            JdbcTemplate jdbcTemplate,
+            NotificationOutboxService notificationOutboxService
+    ) {
         this.jdbcTemplate = jdbcTemplate;
+        this.notificationOutboxService = notificationOutboxService;
     }
 
     @Transactional(readOnly = true)
@@ -255,6 +260,12 @@ public class AdminService {
                     trackingCode.trim(),
                     order.estimatedDays()
             );
+            Long customerId = jdbcTemplate.queryForObject(
+                    "SELECT user_id FROM orders WHERE id = ?",
+                    Long.class,
+                    order.id()
+            );
+            notificationOutboxService.enqueueOrderEvent("ORDER_SHIPPED", order.id(), customerId);
         } else if (targetStatus.equals("DELIVERED")) {
             jdbcTemplate.update("""
                     UPDATE shipments

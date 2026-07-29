@@ -72,7 +72,7 @@ Atualizado em 29/07/2026 após validação local do fluxo completo.
 | 3 — Loja visual | Parcial avançada | Produtos reais, imagens locais, filtros, galeria, variantes, carrinho e preços em BRL | Favoritos, SEO técnico e cotação real de frete |
 | 4 — Autenticação e conta | Parcial avançada | Cadastro, login, refresh rotativo, logout, `/me`, guards, conta e endereços | Verificação de e-mail, recuperação de senha, perfil e ViaCEP |
 | 5 — Carrinho, checkout e pedidos | Quase concluída | Carrinho visitante/autenticado, cupom, checkout, idempotência, reserva, pedido, cancelamento e histórico | Cobertura de concorrência, sessão expirada e demais cenários críticos |
-| 6 — Pagamento e frete reais | Não iniciada | Contratos de dados e sandbox local | Adaptadores reais, webhooks, reconciliação, frete e e-mail |
+| 6 — Pagamento e frete reais | Fundação pronta | `PaymentGateway`, `ShippingGateway`, adaptadores locais e outbox transacional de notificações | Credenciais sandbox, adaptadores reais, webhooks assinados, reconciliação e processador de e-mail |
 | 7 — Administração | Parcial | Dashboard, produtos, ativação, estoque, pedidos, status, rastreio e auditoria básica | Edição completa, imagens, categorias, cupons, alertas e exportação |
 | 8 — Qualidade e operação | Inicial | Docker, CI, Dependabot, health check e testes básicos | E2E, carga, observabilidade, staging, backup e produção |
 

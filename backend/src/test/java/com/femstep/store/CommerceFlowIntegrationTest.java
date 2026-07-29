@@ -125,6 +125,13 @@ class CommerceFlowIntegrationTest {
         assertThat(order.path("status").asText()).isEqualTo("PAID");
         assertThat(order.path("paymentStatus").asText()).isEqualTo("APPROVED");
         assertThat(order.path("items").size()).isEqualTo(1);
+        Integer notifications = jdbcTemplate.queryForObject("""
+                SELECT count(*)
+                FROM notification_outbox n
+                JOIN orders o ON o.id::text = n.aggregate_id
+                WHERE o.public_number = ?
+                """, Integer.class, order.path("orderNumber").asText());
+        assertThat(notifications).isEqualTo(2);
     }
 
     @Test
