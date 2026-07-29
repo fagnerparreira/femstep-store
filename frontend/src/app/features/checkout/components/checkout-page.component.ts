@@ -7,6 +7,7 @@ import { CheckoutPreview, ShippingAddress } from '../../../core/models/order.mod
 import { AuthService } from '../../../core/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
 import { OrderService } from '../../../core/services/order.service';
+import { PostalCodeService } from '../../../core/services/postal-code.service';
 
 @Component({
   selector: 'app-checkout-page',
@@ -21,12 +22,15 @@ export class CheckoutPageComponent implements OnInit {
   private readonly cartService = inject(CartService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly postalCodeService = inject(PostalCodeService);
   readonly cart$ = this.cartService.cart$;
 
   preview: CheckoutPreview | null = null;
   errorMessage = '';
   isLoadingPreview = false;
   isSubmitting = false;
+  isLookingUpPostalCode = false;
+  postalCodeMessage = '';
   private readonly idempotencyKey = this.createIdempotencyKey();
 
   readonly form = this.formBuilder.nonNullable.group({
@@ -76,6 +80,35 @@ export class CheckoutPageComponent implements OnInit {
           this.isLoadingPreview = false;
         }
       });
+  }
+
+  lookupPostalCode(): void {
+    const postalCode = this.form.controls.postalCode.value.replace(/\D/g, '');
+    this.form.controls.postalCode.setValue(postalCode);
+    if (postalCode.length !== 8 || this.isLookingUpPostalCode) {
+      return;
+    }
+
+    this.isLookingUpPostalCode = true;
+    this.postalCodeMessage = '';
+    this.postalCodeService.lookup(postalCode).subscribe({
+      next: address => {
+        this.form.patchValue({
+          street: address.street,
+          neighborhood: address.neighborhood,
+          city: address.city,
+          state: address.state
+        });
+        this.postalCodeMessage = address.street
+          ? 'Endereço preenchido. Informe o número.'
+          : 'CEP localizado. Complete o endereço.';
+        this.isLookingUpPostalCode = false;
+      },
+      error: () => {
+        this.postalCodeMessage = 'Não foi possível consultar o CEP. Continue preenchendo manualmente.';
+        this.isLookingUpPostalCode = false;
+      }
+    });
   }
 
   submit(): void {

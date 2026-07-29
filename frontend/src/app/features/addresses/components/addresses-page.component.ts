@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { Address, AddressRequest } from '../../../core/models/address.model';
 import { AddressService } from '../../../core/services/address.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PostalCodeService } from '../../../core/services/postal-code.service';
 
 @Component({
   selector: 'app-addresses-page',
@@ -18,12 +19,15 @@ export class AddressesPageComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly addressService = inject(AddressService);
   private readonly authService = inject(AuthService);
+  private readonly postalCodeService = inject(PostalCodeService);
 
   addresses: Address[] = [];
   editingId: number | null = null;
   showForm = false;
   isSubmitting = false;
   errorMessage = '';
+  postalCodeMessage = '';
+  isLookingUpPostalCode = false;
 
   readonly form = this.formBuilder.nonNullable.group({
     label: ['Casa', Validators.required],
@@ -99,6 +103,35 @@ export class AddressesPageComponent implements OnInit {
         this.load();
       },
       error: error => this.handleError(error)
+    });
+  }
+
+  lookupPostalCode(): void {
+    const postalCode = this.form.controls.postalCode.value.replace(/\D/g, '');
+    this.form.controls.postalCode.setValue(postalCode);
+    if (postalCode.length !== 8 || this.isLookingUpPostalCode) {
+      return;
+    }
+
+    this.isLookingUpPostalCode = true;
+    this.postalCodeMessage = '';
+    this.postalCodeService.lookup(postalCode).subscribe({
+      next: address => {
+        this.form.patchValue({
+          street: address.street,
+          neighborhood: address.neighborhood,
+          city: address.city,
+          state: address.state
+        });
+        this.postalCodeMessage = address.street
+          ? 'Endereço preenchido pelo CEP. Confira o número.'
+          : 'CEP localizado. Complete os campos que faltam.';
+        this.isLookingUpPostalCode = false;
+      },
+      error: () => {
+        this.postalCodeMessage = 'CEP não localizado automaticamente. Preencha o endereço manualmente.';
+        this.isLookingUpPostalCode = false;
+      }
     });
   }
 

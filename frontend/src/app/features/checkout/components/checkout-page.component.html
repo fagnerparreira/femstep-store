@@ -14,7 +14,7 @@
             <div class="section-heading"><span>1</span><div><h2>Endereço de entrega</h2><p>Informe o endereço completo.</p></div></div>
             <div class="fields">
               <label class="wide">Nome de quem recebe<input formControlName="recipientName"><small *ngIf="invalid('recipientName')">Campo obrigatório.</small></label>
-              <label>CEP<input formControlName="postalCode" inputmode="numeric" maxlength="8" placeholder="00000000"><small *ngIf="invalid('postalCode')">Use 8 números.</small></label>
+              <label>CEP<input formControlName="postalCode" inputmode="numeric" maxlength="9" placeholder="00000000" (blur)="lookupPostalCode()"><small *ngIf="invalid('postalCode')">Use 8 números.</small><small *ngIf="!invalid('postalCode') && (isLookingUpPostalCode || postalCodeMessage)">{{ isLookingUpPostalCode ? 'Consultando CEP...' : postalCodeMessage }}</small></label>
               <label class="street">Rua ou avenida<input formControlName="street"><small *ngIf="invalid('street')">Campo obrigatório.</small></label>
               <label>Número<input formControlName="number"><small *ngIf="invalid('number')">Campo obrigatório.</small></label>
               <label>Complemento<input formControlName="complement" placeholder="Opcional"></label>

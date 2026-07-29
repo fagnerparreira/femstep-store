@@ -29,7 +29,7 @@
       <div class="fields">
         <label>Identificação<input formControlName="label" placeholder="Casa, Trabalho..."></label>
         <label>Nome de quem recebe<input formControlName="recipientName"></label>
-        <label>CEP<input formControlName="postalCode" maxlength="8" inputmode="numeric"></label>
+        <label>CEP<input formControlName="postalCode" maxlength="9" inputmode="numeric" (blur)="lookupPostalCode()"><small>{{ isLookingUpPostalCode ? 'Consultando CEP...' : postalCodeMessage }}</small></label>
         <label>Rua ou avenida<input formControlName="street"></label>
         <label>Número<input formControlName="number"></label>
         <label>Complemento<input formControlName="complement"></label>
