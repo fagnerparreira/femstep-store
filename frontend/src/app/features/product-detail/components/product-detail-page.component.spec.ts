@@ -9,6 +9,7 @@ import { CartService } from '../../../core/services/cart.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { FavoriteService } from '../../../core/services/favorite.service';
 import { ProductService } from '../../../core/services/product.service';
+import { SeoService } from '../../../core/services/seo.service';
 import { ProductDetailPageComponent } from './product-detail-page.component';
 
 registerLocaleData(localePt);
@@ -82,6 +83,10 @@ describe('ProductDetailPageComponent', () => {
             add: () => of(undefined),
             remove: () => of(undefined)
           }
+        },
+        {
+          provide: SeoService,
+          useValue: { setProduct: () => undefined }
         }
       ]
     }).compileComponents();

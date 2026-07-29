@@ -42,6 +42,8 @@ interface ProductDetailApi {
   category: string;
   categorySlug: string;
   featured: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
   variants: ProductVariant[];
   images: ProductImage[];
 }
@@ -174,6 +176,8 @@ export class ProductService {
       material: product.material,
       brand: product.brand,
       featured: product.featured,
+      seoTitle: product.seoTitle,
+      seoDescription: product.seoDescription,
       active: true,
       onSale: product.compareAtPrice != null && product.compareAtPrice > product.price,
       availableSizes: [...new Set(activeVariants.filter(v => v.availableStock > 0).map(v => v.size))].sort(),

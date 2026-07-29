@@ -16,6 +16,8 @@ public record ProductDetailResponse(
         String category,
         String categorySlug,
         Boolean featured,
+        String seoTitle,
+        String seoDescription,
         List<ProductVariantResponse> variants,
         List<ProductImageResponse> images
 ) {

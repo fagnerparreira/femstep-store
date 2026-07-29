@@ -53,10 +53,12 @@ public class CatalogController {
             @RequestParam(defaultValue = "12") @Min(1) @Max(48) int size,
             @RequestParam(defaultValue = "featured") String sort
     ) {
-        return ResponseEntity.ok(catalogService.listProducts(
-                q, category, minPrice, maxPrice, sizes, colors, material,
-                featured, inStock, page, size, sort
-        ));
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(Duration.ofMinutes(2)).cachePublic())
+                .body(catalogService.listProducts(
+                        q, category, minPrice, maxPrice, sizes, colors, material,
+                        featured, inStock, page, size, sort
+                ));
     }
 
     @GetMapping("/products/featured")
@@ -70,6 +72,8 @@ public class CatalogController {
 
     @GetMapping("/products/{slug}")
     public ResponseEntity<ProductDetailResponse> product(@PathVariable String slug) {
-        return ResponseEntity.ok(catalogService.getProduct(slug));
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(Duration.ofMinutes(2)).cachePublic())
+                .body(catalogService.getProduct(slug));
     }
 }

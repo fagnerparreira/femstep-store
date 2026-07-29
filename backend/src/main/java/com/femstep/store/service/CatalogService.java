@@ -123,6 +123,8 @@ public class CatalogService {
                 product.getCategory().getName(),
                 product.getCategory().getSlug(),
                 product.getFeatured(),
+                product.getSeoTitle(),
+                product.getSeoDescription(),
                 variants,
                 images
         );

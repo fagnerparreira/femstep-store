@@ -44,6 +44,12 @@ public class Product extends BaseEntity {
     @Column(name = "length_cm", nullable = false, precision = 8, scale = 2)
     private BigDecimal lengthCm;
 
+    @Column(name = "seo_title")
+    private String seoTitle;
+
+    @Column(name = "seo_description", length = 500)
+    private String seoDescription;
+
     @Column(nullable = false)
     private Boolean active = true;
 
@@ -155,6 +161,22 @@ public class Product extends BaseEntity {
 
     public void setLengthCm(BigDecimal lengthCm) {
         this.lengthCm = lengthCm;
+    }
+
+    public String getSeoTitle() {
+        return seoTitle;
+    }
+
+    public void setSeoTitle(String seoTitle) {
+        this.seoTitle = seoTitle;
+    }
+
+    public String getSeoDescription() {
+        return seoDescription;
+    }
+
+    public void setSeoDescription(String seoDescription) {
+        this.seoDescription = seoDescription;
     }
 
     public Boolean getActive() {

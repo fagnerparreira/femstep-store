@@ -12,6 +12,8 @@ export interface Product {
   categorySlug: string;
   material?: string;
   brand?: string;
+  seoTitle?: string;
+  seoDescription?: string;
   featured: boolean;
   active: boolean;
   isNew?: boolean;

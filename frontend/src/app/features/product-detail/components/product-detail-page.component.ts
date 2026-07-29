@@ -8,6 +8,7 @@ import { CartService } from '../../../core/services/cart.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { FavoriteService } from '../../../core/services/favorite.service';
 import { ProductService } from '../../../core/services/product.service';
+import { SeoService } from '../../../core/services/seo.service';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
@@ -36,7 +37,8 @@ export class ProductDetailPageComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly productService: ProductService,
     private readonly cartService: CartService,
-    private readonly favoriteService: FavoriteService
+    private readonly favoriteService: FavoriteService,
+    private readonly seoService: SeoService
   ) {}
 
   ngOnInit(): void {
@@ -46,6 +48,7 @@ export class ProductDetailPageComponent implements OnInit {
       next: product => {
         this.product = product;
         this.selectedImage = product.imageUrl;
+        this.seoService.setProduct(product);
         this.isLoading = false;
         if (this.authService.isAuthenticated()) {
           this.favoriteService.contains(product.id).subscribe({
