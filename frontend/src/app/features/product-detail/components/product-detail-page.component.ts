@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { switchMap } from 'rxjs';
 import { Product, ProductVariant } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { FavoriteService } from '../../../core/services/favorite.service';
 import { ProductService } from '../../../core/services/product.service';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 
@@ -25,11 +27,16 @@ export class ProductDetailPageComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
   feedbackMessage = '';
+  isFavorite = false;
+  favoriteLoading = false;
 
   constructor(
     private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly authService: AuthService,
     private readonly productService: ProductService,
-    private readonly cartService: CartService
+    private readonly cartService: CartService,
+    private readonly favoriteService: FavoriteService
   ) {}
 
   ngOnInit(): void {
@@ -40,6 +47,11 @@ export class ProductDetailPageComponent implements OnInit {
         this.product = product;
         this.selectedImage = product.imageUrl;
         this.isLoading = false;
+        if (this.authService.isAuthenticated()) {
+          this.favoriteService.contains(product.id).subscribe({
+            next: favorite => this.isFavorite = favorite
+          });
+        }
       },
       error: () => {
         this.errorMessage = 'Este produto não está disponível no momento.';
@@ -100,6 +112,33 @@ export class ProductDetailPageComponent implements OnInit {
     this.feedbackMessage = normalized.length === 8
       ? 'Informe o endereço no checkout para ver as opções e prazos finais.'
       : 'Digite um CEP válido com 8 números.';
+  }
+
+  toggleFavorite(): void {
+    if (!this.product || this.favoriteLoading) {
+      return;
+    }
+    if (!this.authService.isAuthenticated()) {
+      void this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: `/product/${this.product.slug}` }
+      });
+      return;
+    }
+
+    this.favoriteLoading = true;
+    const request = this.isFavorite
+      ? this.favoriteService.remove(this.product.id)
+      : this.favoriteService.add(this.product.id);
+    request.subscribe({
+      next: () => {
+        this.isFavorite = !this.isFavorite;
+        this.favoriteLoading = false;
+      },
+      error: () => {
+        this.feedbackMessage = 'Não foi possível atualizar seus favoritos.';
+        this.favoriteLoading = false;
+      }
+    });
   }
 
   private selectedVariant(): ProductVariant | undefined {

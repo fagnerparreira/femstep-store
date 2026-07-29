@@ -36,6 +36,10 @@
             <span class="nav-action-label">Olá, {{ user.firstName }}</span>
             <strong>Minha conta</strong>
           </a>
+          <a routerLink="/favorites" class="nav-action">
+            <span class="nav-action-label">Sua lista</span>
+            <strong>Favoritos</strong>
+          </a>
           <a *ngIf="user.roles.includes('ROLE_ADMIN')" routerLink="/admin" class="nav-action">
             <span class="nav-action-label">Gestão</span>
             <strong>Painel</strong>

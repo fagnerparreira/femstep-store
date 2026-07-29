@@ -10,7 +10,7 @@ import {
   ProductVariant
 } from '../models/product.model';
 
-interface ProductSummaryApi {
+export interface ProductSummaryApi {
   id: number;
   name: string;
   slug: string;
@@ -130,7 +130,7 @@ export class ProductService {
       .pipe(map(product => this.fromDetail(product)));
   }
 
-  private fromSummary(product: ProductSummaryApi): Product {
+  fromSummary(product: ProductSummaryApi): Product {
     return {
       id: product.id,
       name: product.name,

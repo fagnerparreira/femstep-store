@@ -66,6 +66,12 @@ export const routes: Routes = [
     title: 'Meus endereços | FemStep Store'
   },
   {
+    path: 'favorites',
+    loadComponent: () => import('./features/favorites/components/favorites-page.component').then(m => m.FavoritesPageComponent),
+    canActivate: [authGuard],
+    title: 'Meus favoritos | FemStep Store'
+  },
+  {
     path: 'admin',
     loadComponent: () => import('./features/admin/components/admin-page.component').then(m => m.AdminPageComponent),
     canActivate: [adminGuard],

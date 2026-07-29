@@ -128,6 +128,23 @@ public class CatalogService {
         );
     }
 
+    public List<ProductSummaryResponse> summariesByIds(List<Long> productIds) {
+        if (productIds.isEmpty()) {
+            return List.of();
+        }
+
+        var order = new java.util.HashMap<Long, Integer>();
+        for (int index = 0; index < productIds.size(); index++) {
+            order.put(productIds.get(index), index);
+        }
+
+        return productRepository.findAllById(productIds).stream()
+                .filter(Product::getActive)
+                .sorted(Comparator.comparingInt(product -> order.getOrDefault(product.getId(), Integer.MAX_VALUE)))
+                .map(this::toSummary)
+                .toList();
+    }
+
     private Specification<Product> buildSpecification(
             String search,
             String category,

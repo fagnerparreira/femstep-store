@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -215,6 +216,36 @@ class CommerceFlowIntegrationTest {
     }
 
     @Test
+    void customerCanAddListAndRemoveAFavorite() throws Exception {
+        long productId = productId("scarpin-aurora");
+        String bearer = registerBearer(uniqueEmail("favorite"));
+
+        mockMvc.perform(post("/api/account/favorites/{productId}", productId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(post("/api/account/favorites/{productId}", productId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer))
+                .andExpect(status().isNoContent());
+
+        JsonNode favorites = json(mockMvc.perform(get("/api/account/favorites")
+                        .header(HttpHeaders.AUTHORIZATION, bearer))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(favorites.size()).isEqualTo(1);
+        assertThat(favorites.get(0).path("id").asLong()).isEqualTo(productId);
+
+        mockMvc.perform(delete("/api/account/favorites/{productId}", productId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer))
+                .andExpect(status().isNoContent());
+
+        JsonNode state = json(mockMvc.perform(get("/api/account/favorites/{productId}", productId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(state.path("favorite").asBoolean()).isFalse();
+    }
+
+    @Test
     void concurrentCheckoutsCannotSellTheLastUnitTwice() throws Exception {
         long variantId = variantId("tenis-nuvem");
         String firstBearer = registerBearer(uniqueEmail("stock-a"));
@@ -268,6 +299,13 @@ class CommerceFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString());
         return product.path("variants").get(0).path("id").asLong();
+    }
+
+    private long productId(String slug) throws Exception {
+        JsonNode product = json(mockMvc.perform(get("/api/public/products/" + slug))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        return product.path("id").asLong();
     }
 
     private String registerBearer(String email) throws Exception {

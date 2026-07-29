@@ -1,0 +1,54 @@
+.favorites-page {
+  min-height: 65vh;
+  padding: 32px 0 72px;
+}
+
+header {
+  margin: 32px 0;
+}
+
+header span {
+  color: var(--color-brand);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+header h1 {
+  margin: 6px 0;
+  font-family: var(--font-display);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px 20px;
+}
+
+.grid button,
+.empty a {
+  display: inline-block;
+  margin-top: 8px;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: var(--color-brand);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: none;
+}
+
+.empty {
+  padding: 48px 0;
+  text-align: center;
+}
+
+.error {
+  color: #9d2f2f;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

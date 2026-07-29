@@ -6,6 +6,8 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { of } from 'rxjs';
 import { Product } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { FavoriteService } from '../../../core/services/favorite.service';
 import { ProductService } from '../../../core/services/product.service';
 import { ProductDetailPageComponent } from './product-detail-page.component';
 
@@ -68,6 +70,18 @@ describe('ProductDetailPageComponent', () => {
         {
           provide: CartService,
           useValue: { addToCart: () => of({}) }
+        },
+        {
+          provide: AuthService,
+          useValue: { isAuthenticated: () => false }
+        },
+        {
+          provide: FavoriteService,
+          useValue: {
+            contains: () => of(false),
+            add: () => of(undefined),
+            remove: () => of(undefined)
+          }
         }
       ]
     }).compileComponents();

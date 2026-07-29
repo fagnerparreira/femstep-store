@@ -39,6 +39,14 @@
         <span class="category">{{ currentProduct.category }}</span>
         <h1>{{ currentProduct.name }}</h1>
         <p class="short-description">{{ currentProduct.shortDescription }}</p>
+        <button
+          class="favorite-button"
+          type="button"
+          [disabled]="favoriteLoading"
+          [attr.aria-pressed]="isFavorite"
+          (click)="toggleFavorite()">
+          {{ isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos' }}
+        </button>
 
         <div class="price">
           <span class="original" *ngIf="currentProduct.originalPrice">

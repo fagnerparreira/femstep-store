@@ -96,6 +96,22 @@
   padding-top: 24px;
 }
 
+.favorite-button {
+  margin: 0 0 18px;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: var(--color-brand);
+  cursor: pointer;
+  font: inherit;
+}
+
+.favorite-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .category {
   color: var(--color-brand);
   font-size: 0.7rem;
