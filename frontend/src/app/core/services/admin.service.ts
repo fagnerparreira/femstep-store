@@ -60,6 +60,22 @@ export interface AdminProductRequest {
   variants: Array<{ sku: string; size: number; color: string; stock: number }>;
 }
 
+export interface AdminProductDetails {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  shortDescription?: string;
+  price: number;
+  categoryId: number;
+  active: boolean;
+  featured: boolean;
+  material?: string;
+  brand?: string;
+}
+
+export type AdminProductUpdateRequest = Omit<AdminProductDetails, 'id' | 'active'>;
+
 export interface AdminCoupon {
   id: number;
   code: string;
@@ -102,8 +118,22 @@ export class AdminService {
     return this.http.get<AdminProduct[]>(`${this.apiUrl}/products`);
   }
 
+  product(productId: number): Observable<AdminProductDetails> {
+    return this.http.get<AdminProductDetails>(`${this.apiUrl}/products/${productId}`);
+  }
+
   createProduct(request: AdminProductRequest): Observable<AdminProduct> {
     return this.http.post<AdminProduct>(`${this.apiUrl}/products`, request);
+  }
+
+  updateProduct(
+    productId: number,
+    request: AdminProductUpdateRequest
+  ): Observable<AdminProduct> {
+    return this.http.put<AdminProduct>(
+      `${this.apiUrl}/products/${productId}`,
+      request
+    );
   }
 
   toggleProduct(productId: number, active: boolean): Observable<AdminProduct> {

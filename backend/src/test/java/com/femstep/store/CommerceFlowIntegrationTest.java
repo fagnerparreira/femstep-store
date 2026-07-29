@@ -364,6 +364,71 @@ class CommerceFlowIntegrationTest {
     }
 
     @Test
+    void administratorCanReadAndUpdateProductDetails() throws Exception {
+        String bearer = registerAdminBearer(uniqueEmail("product-admin"));
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        Long categoryId = jdbcTemplate.queryForObject(
+                "SELECT id FROM categories WHERE active = true ORDER BY id LIMIT 1",
+                Long.class
+        );
+        String slug = "produto-" + suffix;
+        String createRequest = objectMapper.writeValueAsString(Map.ofEntries(
+                Map.entry("name", "Produto Teste"),
+                Map.entry("slug", slug),
+                Map.entry("description", "Descrição inicial"),
+                Map.entry("shortDescription", "Resumo inicial"),
+                Map.entry("price", 199.90),
+                Map.entry("categoryId", categoryId),
+                Map.entry("featured", false),
+                Map.entry("material", "Sintético"),
+                Map.entry("brand", "FemStep"),
+                Map.entry("imageUrl", "https://example.test/produto.jpg"),
+                Map.entry("variants", List.of(Map.of(
+                        "sku", "TEST-" + suffix.toUpperCase(),
+                        "size", 36,
+                        "color", "Preto",
+                        "stock", 3
+                )))
+        ));
+
+        JsonNode created = json(mockMvc.perform(post("/api/admin/products")
+                        .header(HttpHeaders.AUTHORIZATION, bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createRequest))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString());
+        long productId = created.path("id").asLong();
+
+        JsonNode details = json(mockMvc.perform(get("/api/admin/products/{productId}", productId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(details.path("description").asText()).isEqualTo("Descrição inicial");
+
+        String updatedSlug = slug + "-editado";
+        JsonNode updated = json(mockMvc.perform(put("/api/admin/products/{productId}", productId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "name", "Produto Atualizado",
+                                "slug", updatedSlug,
+                                "description", "Descrição atualizada",
+                                "shortDescription", "Resumo atualizado",
+                                "price", 219.90,
+                                "categoryId", categoryId,
+                                "featured", true,
+                                "material", "Couro",
+                                "brand", "FemStep"
+                        ))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+
+        assertThat(updated.path("name").asText()).isEqualTo("Produto Atualizado");
+        assertThat(updated.path("slug").asText()).isEqualTo(updatedSlug);
+        assertThat(updated.path("featured").asBoolean()).isTrue();
+    }
+
+    @Test
     void concurrentCheckoutsCannotSellTheLastUnitTwice() throws Exception {
         long variantId = variantId("tenis-nuvem");
         String firstBearer = registerBearer(uniqueEmail("stock-a"));

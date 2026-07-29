@@ -35,6 +35,7 @@ export class AdminPageComponent implements OnInit {
   activeSection: 'overview' | 'products' | 'orders' | 'coupons' | 'categories' = 'overview';
   editingCouponId: number | null = null;
   editingCategoryId: number | null = null;
+  editingProductId: number | null = null;
   expandedProductId: number | null = null;
   trackingCodes: Record<string, string> = {};
   isSubmitting = false;
@@ -55,6 +56,18 @@ export class AdminPageComponent implements OnInit {
     sizes: ['34,35,36,37,38,39', Validators.required],
     colors: ['Preto', Validators.required],
     stock: [5, [Validators.required, Validators.min(0)]]
+  });
+
+  readonly productEditForm = this.formBuilder.nonNullable.group({
+    name: ['', Validators.required],
+    slug: ['', [Validators.required, Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)]],
+    description: ['', Validators.required],
+    shortDescription: [''],
+    price: [0, [Validators.required, Validators.min(0.01)]],
+    categoryId: [0, [Validators.required, Validators.min(1)]],
+    featured: [false],
+    material: [''],
+    brand: ['FemStep']
   });
 
   readonly couponForm = this.formBuilder.nonNullable.group({
@@ -291,6 +304,64 @@ export class AdminPageComponent implements OnInit {
       },
       error: error => this.handleError(error)
     });
+  }
+
+  editProduct(product: AdminProduct): void {
+    this.clearMessages();
+    this.adminService.product(product.id).subscribe({
+      next: details => {
+        this.editingProductId = product.id;
+        this.expandedProductId = product.id;
+        this.productEditForm.reset({
+          name: details.name,
+          slug: details.slug,
+          description: details.description,
+          shortDescription: details.shortDescription ?? '',
+          price: details.price,
+          categoryId: details.categoryId,
+          featured: details.featured,
+          material: details.material ?? '',
+          brand: details.brand ?? 'FemStep'
+        });
+      },
+      error: error => this.handleError(error)
+    });
+  }
+
+  saveProduct(): void {
+    this.clearMessages();
+    if (!this.editingProductId || this.productEditForm.invalid || this.isSubmitting) {
+      this.productEditForm.markAllAsTouched();
+      this.errorMessage = 'Revise os dados do produto.';
+      return;
+    }
+    const productId = this.editingProductId;
+    const value = this.productEditForm.getRawValue();
+    this.isSubmitting = true;
+    this.adminService.updateProduct(productId, {
+      name: value.name.trim(),
+      slug: value.slug.trim(),
+      description: value.description.trim(),
+      shortDescription: value.shortDescription.trim() || undefined,
+      price: value.price,
+      categoryId: value.categoryId,
+      featured: value.featured,
+      material: value.material.trim() || undefined,
+      brand: value.brand.trim() || undefined
+    }).subscribe({
+      next: updated => {
+        this.products = this.products.map(item => item.id === updated.id ? updated : item);
+        this.message = 'Produto atualizado.';
+        this.isSubmitting = false;
+        this.editingProductId = null;
+      },
+      error: error => this.handleError(error)
+    });
+  }
+
+  cancelProductEdit(): void {
+    this.editingProductId = null;
+    this.productEditForm.reset();
   }
 
   toggleProduct(product: AdminProduct): void {

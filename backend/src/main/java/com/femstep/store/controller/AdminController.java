@@ -6,8 +6,10 @@ import com.femstep.store.dto.admin.AdminCouponResponse;
 import com.femstep.store.dto.admin.AdminCategoryRequest;
 import com.femstep.store.dto.admin.AdminCategoryResponse;
 import com.femstep.store.dto.admin.AdminOrderResponse;
+import com.femstep.store.dto.admin.AdminProductDetailsResponse;
 import com.femstep.store.dto.admin.AdminProductRequest;
 import com.femstep.store.dto.admin.AdminProductResponse;
+import com.femstep.store.dto.admin.AdminProductUpdateRequest;
 import com.femstep.store.service.AdminService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -49,12 +51,26 @@ public class AdminController {
         return adminService.products();
     }
 
+    @GetMapping("/products/{productId}")
+    public AdminProductDetailsResponse product(@PathVariable Long productId) {
+        return adminService.productDetails(productId);
+    }
+
     @PostMapping("/products")
     @ResponseStatus(HttpStatus.CREATED)
     public AdminProductResponse createProduct(
             Authentication authentication,
             @Valid @RequestBody AdminProductRequest request) {
         return adminService.createProduct(request, authentication.getName());
+    }
+
+    @PutMapping("/products/{productId}")
+    public AdminProductResponse updateProduct(
+            Authentication authentication,
+            @PathVariable Long productId,
+            @Valid @RequestBody AdminProductUpdateRequest request
+    ) {
+        return adminService.updateProduct(productId, request, authentication.getName());
     }
 
     @PatchMapping("/products/{productId}/active")

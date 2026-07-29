@@ -6,8 +6,10 @@ import com.femstep.store.dto.admin.AdminCouponResponse;
 import com.femstep.store.dto.admin.AdminCategoryRequest;
 import com.femstep.store.dto.admin.AdminCategoryResponse;
 import com.femstep.store.dto.admin.AdminOrderResponse;
+import com.femstep.store.dto.admin.AdminProductDetailsResponse;
 import com.femstep.store.dto.admin.AdminProductRequest;
 import com.femstep.store.dto.admin.AdminProductResponse;
+import com.femstep.store.dto.admin.AdminProductUpdateRequest;
 import com.femstep.store.dto.admin.AdminVariantResponse;
 import com.femstep.store.exception.BusinessRuleException;
 import com.femstep.store.exception.ConflictException;
@@ -88,6 +90,32 @@ public class AdminService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public AdminProductDetailsResponse productDetails(Long productId) {
+        return jdbcTemplate.query("""
+                        SELECT id, name, slug, description, short_description,
+                               base_price, category_id, active, featured, material, brand
+                        FROM products
+                        WHERE id = ?
+                        """,
+                (rs, rowNum) -> new AdminProductDetailsResponse(
+                        rs.getLong("id"),
+                        rs.getString("name"),
+                        rs.getString("slug"),
+                        rs.getString("description"),
+                        rs.getString("short_description"),
+                        rs.getBigDecimal("base_price"),
+                        rs.getLong("category_id"),
+                        rs.getBoolean("active"),
+                        rs.getBoolean("featured"),
+                        rs.getString("material"),
+                        rs.getString("brand")
+                ),
+                productId
+        ).stream().findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado"));
+    }
+
     @Transactional
     public AdminProductResponse createProduct(AdminProductRequest request, String adminEmail) {
         ensureCategory(request.categoryId());
@@ -133,6 +161,42 @@ public class AdminService {
             return product(productId);
         } catch (DuplicateKeyException exception) {
             throw new ConflictException("Já existe um produto, SKU ou variação com estes dados");
+        }
+    }
+
+    @Transactional
+    public AdminProductResponse updateProduct(
+            Long productId,
+            AdminProductUpdateRequest request,
+            String adminEmail
+    ) {
+        ensureCategory(request.categoryId());
+        try {
+            int updated = jdbcTemplate.update("""
+                    UPDATE products
+                    SET name = ?, slug = ?, description = ?, short_description = ?,
+                        base_price = ?, category_id = ?, featured = ?, material = ?,
+                        brand = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    request.name().trim(),
+                    request.slug().trim(),
+                    request.description().trim(),
+                    blankToNull(request.shortDescription()),
+                    request.price(),
+                    request.categoryId(),
+                    request.featured(),
+                    blankToNull(request.material()),
+                    blankToNull(request.brand()) == null ? "FemStep" : request.brand().trim(),
+                    productId
+            );
+            if (updated != 1) {
+                throw new ResourceNotFoundException("Produto não encontrado");
+            }
+            audit(adminEmail, "UPDATE_PRODUCT", "PRODUCT", productId, request.slug());
+            return product(productId);
+        } catch (DuplicateKeyException exception) {
+            throw new ConflictException("Já existe um produto com este slug");
         }
     }
 
