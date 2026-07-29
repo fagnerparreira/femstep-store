@@ -1,47 +1,44 @@
 # FemStep Store — Backend
 
-API Spring Boot 3.5 com Java 21.
+API Java 21 com Spring Boot 3.5 e PostgreSQL.
 
-## Funcionalidades atuais
+## Módulos
 
-- Cadastro e autenticação com JWT
-- Spring Security
-- Validação de entrada e tratamento global de erros
-- PostgreSQL e migrações Flyway
-- Entidades e repositórios do catálogo
-- Health check em `GET /api/health`
-- OpenAPI/Swagger configurável
-
-Os endpoints públicos de catálogo, pedidos e administração ainda fazem parte do
-roadmap.
+- autenticação JWT com sessão de refresh rotativa;
+- catálogo público e estoque por variação;
+- carrinho persistente;
+- endereços da conta;
+- checkout transacional, cupom e frete;
+- pedidos, pagamentos sandbox, cancelamento e expiração de reserva;
+- painel administrativo, inventário, rastreio e auditoria;
+- migrações Flyway e catálogo inicial.
 
 ## Executar
 
-Requer Java 21, Maven 3.6.3 ou superior e PostgreSQL.
+Defina as variáveis descritas no `.env.example` da raiz e execute:
 
 ```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=local
+mvn spring-boot:run
 ```
 
-## Testar e empacotar
+## Testes
 
 ```bash
-mvn verify
-mvn clean package
+mvn test
 ```
 
-## Configuração
+O teste de integração inicia um PostgreSQL 15 descartável com Testcontainers,
+aplica todas as migrações e executa cadastro, carrinho, cupom, checkout,
+pagamento e baixa de estoque.
 
-As credenciais e os segredos são recebidos por variáveis de ambiente. Consulte
-o `.env.example` da raiz. Nunca use os valores de exemplo em produção.
+## Principais APIs
 
-## Camadas existentes
+- `/api/public/*`: catálogo
+- `/api/auth/*`: autenticação
+- `/api/cart`: carrinho autenticado
+- `/api/checkout/preview`: simulação final
+- `/api/orders`: checkout e pedidos
+- `/api/account/addresses`: endereços
+- `/api/admin/*`: operação administrativa
 
-- `config`: segurança e OpenAPI
-- `controller`: autenticação e health check
-- `service`: autenticação e emissão de tokens
-- `repository`: acesso a usuários e catálogo
-- `domain`: entidades JPA
-- `dto`: contratos de autenticação
-- `security`: filtro e serviços JWT
-- `exception`: respostas de erro
+As rotas administrativas exigem `ROLE_ADMIN`.

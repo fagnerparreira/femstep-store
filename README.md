@@ -1,74 +1,69 @@
 # FemStep Store
 
-E-commerce full stack em evolução, criado para demonstrar integração entre
-Angular, Spring Boot, PostgreSQL, autenticação JWT e execução com contêineres.
+Mini e-commerce full stack de calçados femininos, com catálogo, autenticação,
+carrinho persistente, checkout, pedidos, pagamento sandbox, controle de estoque
+e painel administrativo.
 
-## Estado atual
+## O que está pronto
 
-### Disponível
-
-- Home e catálogo responsivos em Angular
-- Catálogo demonstrativo com filtros e busca
-- Carrinho local com controle de estoque e persistência no navegador
-- Cadastro e login no backend com JWT
-- Modelo relacional para usuários, categorias, produtos, variações e imagens
-- Migrações de banco com Flyway
-- Health check e documentação OpenAPI
-- Build, testes e auditoria de produção automatizados no GitHub Actions
-- Imagens Docker para frontend e backend
-
-### Em desenvolvimento
-
-- API pública de produtos conectada ao catálogo
-- Tela de detalhes do produto
-- Fluxo completo do carrinho e checkout
-- Pedidos, pagamentos e painel administrativo
-- Testes de integração do backend com PostgreSQL
-
-O repositório representa um produto em construção. Funcionalidades ainda não
-implementadas não são apresentadas como prontas.
+- Home, catálogo responsivo, busca, filtros, ordenação e paginação
+- Página de produto com imagens, tamanho, cor e estoque por variação
+- Cadastro, login JWT, refresh token rotativo em cookie HttpOnly e logout
+- Carrinho de visitante no navegador e carrinho autenticado no PostgreSQL
+- Migração automática do carrinho de visitante depois do login
+- Checkout com endereço, frete, cupom, idempotência e validação de preços no servidor
+- PIX e cartão em ambiente sandbox, sem coleta de dados bancários reais
+- Reserva de estoque, expiração automática, baixa após pagamento e cancelamento
+- Histórico e detalhe dos pedidos
+- Cadastro e gerenciamento de endereços
+- Painel administrativo com métricas, produtos, variações, estoque e pedidos
+- Catálogo inicial com 12 produtos, 6 categorias, imagens e cupom `BEMVINDA10`
+- Migrações Flyway e teste de integração completo com PostgreSQL/Testcontainers
 
 ## Tecnologias
 
-- **Frontend:** Angular 21, TypeScript, RxJS e Vitest
-- **Backend:** Java 21, Spring Boot 3.5, Spring Security e Spring Data JPA
-- **Dados:** PostgreSQL 15 e Flyway
-- **Infraestrutura:** Docker Compose e Nginx
-- **Qualidade:** GitHub Actions, testes automatizados e auditoria de dependências
+- Frontend: Angular 21, TypeScript, RxJS e Vitest
+- Backend: Java 21, Spring Boot 3.5, Spring Security, JPA e JDBC
+- Banco: PostgreSQL 15 e Flyway
+- Infraestrutura: Docker Compose e Nginx
 
-## Estrutura
-
-```text
-femstep-store/
-├── backend/          API Spring Boot
-├── frontend/         Aplicação Angular
-├── docs/             Estado e decisões do projeto
-└── docker-compose.yml
-```
-
-## Início rápido com Docker
+## Executar com Docker
 
 1. Copie `.env.example` para `.env`.
-2. Substitua todos os valores de exemplo por segredos únicos.
-3. Execute:
+2. Preencha `DB_PASSWORD` e `JWT_SECRET` com valores aleatórios fortes.
+3. Para testar compras localmente, use:
+
+```dotenv
+COOKIE_SECURE=false
+PAYMENTS_SANDBOX_ENABLED=true
+```
+
+4. Para criar o primeiro administrador, informe:
+
+```dotenv
+ADMIN_EMAIL=admin@seudominio.com.br
+ADMIN_PASSWORD=uma-senha-unica-com-12-ou-mais-caracteres
+```
+
+5. Suba a aplicação:
 
 ```bash
 docker compose up --build
 ```
 
-Serviços locais:
+Endereços locais:
 
-- Frontend: `http://localhost:4200`
-- Backend: `http://localhost:8080`
+- Loja: `http://localhost:4200`
+- API: `http://localhost:8080`
 - Health check: `http://localhost:8080/api/health`
+- Swagger local, quando habilitado: `http://localhost:8080/swagger-ui.html`
 
-O frontend usa o Nginx para encaminhar chamadas em `/api` ao backend.
+O Nginx do frontend encaminha automaticamente as chamadas em `/api` para o
+backend.
 
-## Desenvolvimento sem Docker
+## Desenvolvimento
 
-### Frontend
-
-Requer Node.js 22.12 ou superior.
+Frontend:
 
 ```bash
 cd frontend
@@ -76,44 +71,69 @@ npm ci
 npm start
 ```
 
-Verificações:
-
-```bash
-npm run check
-npm audit --omit=dev
-```
-
-### Backend
-
-Requer Java 21 e Maven 3.6.3 ou superior.
+Backend, com PostgreSQL disponível:
 
 ```bash
 cd backend
-mvn spring-boot:run -Dspring-boot.run.profiles=local
+mvn spring-boot:run
 ```
 
-Verificações:
+Validação completa:
 
 ```bash
-mvn verify
+cd frontend
+npm run check
+
+cd ../backend
+mvn test
 ```
 
-## Configuração segura
+O teste do backend usa Testcontainers e precisa de Docker em execução.
 
-As variáveis abaixo devem ser definidas antes de subir o ambiente:
+## Fluxo de compra sandbox
 
-- `DB_PASSWORD`: senha exclusiva para o PostgreSQL
-- `JWT_SECRET`: segredo aleatório com pelo menos 32 bytes
-- `CORS_ALLOWED_ORIGINS`: origens exatas autorizadas a acessar a API
+1. Crie uma conta.
+2. Escolha um produto, tamanho e cor.
+3. Abra a sacola e prossiga ao checkout.
+4. Informe o endereço e, se quiser, use `BEMVINDA10`.
+5. Escolha:
+   - `PIX sandbox`: cria um pedido pendente e um código demonstrativo; na página
+     do pedido, use “Simular pagamento aprovado”.
+   - `Cartão de teste`: aprova imediatamente, sem solicitar número de cartão.
 
-O arquivo `.env` é ignorado pelo Git e nunca deve ser publicado.
+O servidor recalcula preço, desconto e frete, bloqueia a variação durante a
+compra e só reduz o estoque depois da aprovação.
 
-## Atualizações de versão
+## Painel administrativo
 
-Angular 21 permanece em suporte ativo e Spring Boot 3.5 é a base recomendada
-antes de uma migração para Spring Boot 4. As atualizações maiores devem ser
-feitas separadamente, com testes de regressão, em vez de apenas alterar números
-de versão.
+Configure `ADMIN_EMAIL` e `ADMIN_PASSWORD`, entre com essa conta e abra
+`/admin`. O painel permite:
+
+- acompanhar receita, pedidos e alertas de estoque;
+- cadastrar produtos com tamanhos, cores e estoque;
+- ativar ou desativar produtos;
+- ajustar o estoque por SKU;
+- mover pedidos pagos para preparação, envio e entrega;
+- registrar código de rastreio no envio.
+
+## Produção
+
+Antes de vender de verdade:
+
+- mantenha `COOKIE_SECURE=true` e use HTTPS;
+- mantenha `PAYMENTS_SANDBOX_ENABLED=false`;
+- substitua o gateway sandbox por uma conta de pagamento real e webhooks
+  assinados do provedor;
+- integre uma cotação real de frete;
+- use um serviço transacional de e-mail;
+- armazene segredos fora do Git;
+- configure backup, monitoramento e política de privacidade/LGPD.
+
+O sandbox entregue é totalmente funcional para desenvolvimento e homologação,
+mas não movimenta dinheiro real.
+
+O planejamento técnico completo está em
+[`docs/PLANO_IMPLEMENTACAO_ECOMMERCE.md`](docs/PLANO_IMPLEMENTACAO_ECOMMERCE.md).
 
 ## Licença
 
