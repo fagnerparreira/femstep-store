@@ -1,9 +1,13 @@
 package com.femstep.store.controller;
 
 import com.femstep.store.dto.auth.AuthResponse;
+import com.femstep.store.dto.auth.ForgotPasswordRequest;
 import com.femstep.store.dto.auth.LoginRequest;
+import com.femstep.store.dto.auth.MessageResponse;
 import com.femstep.store.dto.auth.RegisterRequest;
+import com.femstep.store.dto.auth.ResetPasswordRequest;
 import com.femstep.store.dto.auth.UserResponse;
+import com.femstep.store.dto.auth.VerifyEmailRequest;
 import com.femstep.store.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -18,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
@@ -74,6 +79,36 @@ public class AuthController {
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, clearRefreshCookie().toString())
                 .build();
+    }
+
+    @PostMapping("/forgot-password")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public MessageResponse forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.requestPasswordReset(request.email());
+        return new MessageResponse(
+                "Se o e-mail estiver cadastrado, você receberá as instruções para redefinir a senha."
+        );
+    }
+
+    @PostMapping("/reset-password")
+    public MessageResponse resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.token(), request.password());
+        return new MessageResponse("Senha redefinida. Entre novamente com a nova senha.");
+    }
+
+    @PostMapping("/verify-email")
+    public MessageResponse verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        authService.verifyEmail(request.token());
+        return new MessageResponse("E-mail verificado com sucesso.");
+    }
+
+    @PostMapping("/resend-verification")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public MessageResponse resendVerification(Authentication authentication) {
+        authService.resendEmailVerification(authentication.getName());
+        return new MessageResponse(
+                "Se a verificação ainda estiver pendente, uma nova mensagem será enviada."
+        );
     }
 
     @GetMapping("/me")

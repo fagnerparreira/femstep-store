@@ -9,6 +9,7 @@ import com.femstep.store.dto.auth.LoginRequest;
 import com.femstep.store.dto.auth.RegisterRequest;
 import com.femstep.store.dto.auth.UserResponse;
 import com.femstep.store.dto.auth.UpdateProfileRequest;
+import com.femstep.store.exception.BusinessRuleException;
 import com.femstep.store.exception.ConflictException;
 import com.femstep.store.exception.InvalidSessionException;
 import com.femstep.store.exception.ResourceNotFoundException;
@@ -20,6 +21,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +40,9 @@ public class AuthService {
 
     private static final int REFRESH_TOKEN_BYTES = 48;
     private static final int REFRESH_TOKEN_DAYS = 30;
+    private static final int ACCOUNT_TOKEN_BYTES = 32;
+    private static final int PASSWORD_RESET_MINUTES = 30;
+    private static final int EMAIL_VERIFICATION_HOURS = 24;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final AuthenticationManager authenticationManager;
@@ -46,6 +51,8 @@ public class AuthService {
     private final AuthSessionRepository authSessionRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final JdbcTemplate jdbcTemplate;
+    private final NotificationOutboxService notificationOutboxService;
 
     public AuthService(
             AuthenticationManager authenticationManager,
@@ -53,7 +60,9 @@ public class AuthService {
             RoleRepository roleRepository,
             AuthSessionRepository authSessionRepository,
             PasswordEncoder passwordEncoder,
-            JwtService jwtService
+            JwtService jwtService,
+            JdbcTemplate jdbcTemplate,
+            NotificationOutboxService notificationOutboxService
     ) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
@@ -61,6 +70,8 @@ public class AuthService {
         this.authSessionRepository = authSessionRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.jdbcTemplate = jdbcTemplate;
+        this.notificationOutboxService = notificationOutboxService;
     }
 
     public AuthResult login(LoginRequest request, ClientInfo clientInfo) {
@@ -100,6 +111,7 @@ public class AuthService {
         user.setActive(true);
         user.addRole(customerRole);
         user = userRepository.save(user);
+        issueEmailVerification(user);
 
         UserDetails userDetails = toUserDetails(user);
         return createAuthResult(user, userDetails, clientInfo);
@@ -130,6 +142,83 @@ public class AuthService {
         }
         authSessionRepository.findByTokenHashAndRevokedAtIsNull(hash(rawRefreshToken))
                 .ifPresent(session -> session.setRevokedAt(LocalDateTime.now()));
+    }
+
+    public void requestPasswordReset(String requestedEmail) {
+        String email = normalizeEmail(requestedEmail);
+        userRepository.findByEmail(email)
+                .filter(User::getActive)
+                .ifPresent(this::issuePasswordReset);
+    }
+
+    public void resetPassword(String rawToken, String newPassword) {
+        AccountToken token = findUsableToken(
+                "password_reset_tokens",
+                rawToken,
+                "Token de redefinição inválido ou expirado"
+        );
+        User user = userRepository.findById(token.userId())
+                .filter(User::getActive)
+                .orElseThrow(() -> new BusinessRuleException(
+                        "Token de redefinição inválido ou expirado"
+                ));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        LocalDateTime now = LocalDateTime.now();
+        jdbcTemplate.update(
+                "UPDATE password_reset_tokens SET used_at = ? WHERE user_id = ? AND used_at IS NULL",
+                now,
+                user.getId()
+        );
+        jdbcTemplate.update(
+                "UPDATE auth_sessions SET revoked_at = ?, updated_at = ? WHERE user_id = ? AND revoked_at IS NULL",
+                now,
+                now,
+                user.getId()
+        );
+        notificationOutboxService.redactAccountTokenEvent(
+                "PASSWORD_RESET_REQUESTED",
+                user.getId(),
+                token.id()
+        );
+    }
+
+    public void verifyEmail(String rawToken) {
+        AccountToken token = findUsableToken(
+                "email_verification_tokens",
+                rawToken,
+                "Token de verificação inválido ou expirado"
+        );
+        LocalDateTime now = LocalDateTime.now();
+        int updated = jdbcTemplate.update("""
+                UPDATE users
+                SET email_verified_at = COALESCE(email_verified_at, ?),
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ? AND active = true AND deleted_at IS NULL
+                """,
+                now,
+                token.userId()
+        );
+        if (updated != 1) {
+            throw new BusinessRuleException("Token de verificação inválido ou expirado");
+        }
+        jdbcTemplate.update(
+                "UPDATE email_verification_tokens SET used_at = ? WHERE user_id = ? AND used_at IS NULL",
+                now,
+                token.userId()
+        );
+        notificationOutboxService.redactAccountTokenEvent(
+                "EMAIL_VERIFICATION_REQUESTED",
+                token.userId(),
+                token.id()
+        );
+    }
+
+    public void resendEmailVerification(String email) {
+        userRepository.findByEmail(normalizeEmail(email))
+                .filter(user -> user.getActive()
+                        && user.getEmailVerifiedAt() == null)
+                .ifPresent(this::issueEmailVerification);
     }
 
     @Transactional(readOnly = true)
@@ -197,6 +286,86 @@ public class AuthService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
+    private void issuePasswordReset(User user) {
+        jdbcTemplate.update(
+                "UPDATE password_reset_tokens SET used_at = CURRENT_TIMESTAMP WHERE user_id = ? AND used_at IS NULL",
+                user.getId()
+        );
+        String rawToken = generateAccountToken();
+        Long tokenId = jdbcTemplate.queryForObject("""
+                INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+                VALUES (?, ?, ?)
+                RETURNING id
+                """,
+                Long.class,
+                user.getId(),
+                hash(rawToken),
+                LocalDateTime.now().plusMinutes(PASSWORD_RESET_MINUTES)
+        );
+        notificationOutboxService.enqueueAccountTokenEvent(
+                "PASSWORD_RESET_REQUESTED",
+                user.getId(),
+                tokenId,
+                user.getEmail(),
+                rawToken
+        );
+    }
+
+    private void issueEmailVerification(User user) {
+        if (user.getEmailVerifiedAt() != null) {
+            return;
+        }
+        jdbcTemplate.update(
+                "UPDATE email_verification_tokens SET used_at = CURRENT_TIMESTAMP WHERE user_id = ? AND used_at IS NULL",
+                user.getId()
+        );
+        String rawToken = generateAccountToken();
+        Long tokenId = jdbcTemplate.queryForObject("""
+                INSERT INTO email_verification_tokens (user_id, token_hash, expires_at)
+                VALUES (?, ?, ?)
+                RETURNING id
+                """,
+                Long.class,
+                user.getId(),
+                hash(rawToken),
+                LocalDateTime.now().plusHours(EMAIL_VERIFICATION_HOURS)
+        );
+        notificationOutboxService.enqueueAccountTokenEvent(
+                "EMAIL_VERIFICATION_REQUESTED",
+                user.getId(),
+                tokenId,
+                user.getEmail(),
+                rawToken
+        );
+    }
+
+    private AccountToken findUsableToken(String table, String rawToken, String errorMessage) {
+        if (!table.equals("password_reset_tokens")
+                && !table.equals("email_verification_tokens")) {
+            throw new IllegalArgumentException("Tabela de token não suportada");
+        }
+        return jdbcTemplate.query("""
+                        SELECT id, user_id
+                        FROM %s
+                        WHERE token_hash = ? AND used_at IS NULL
+                          AND expires_at > CURRENT_TIMESTAMP
+                        FOR UPDATE
+                        """.formatted(table),
+                (rs, rowNum) -> new AccountToken(
+                        rs.getLong("id"),
+                        rs.getLong("user_id")
+                ),
+                hash(rawToken)
+        ).stream().findFirst()
+                .orElseThrow(() -> new BusinessRuleException(errorMessage));
+    }
+
+    private String generateAccountToken() {
+        byte[] bytes = new byte[ACCOUNT_TOKEN_BYTES];
+        SECURE_RANDOM.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
     private String hash(String token) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -228,5 +397,8 @@ public class AuthService {
     }
 
     public record AuthResult(AuthResponse response, String refreshToken) {
+    }
+
+    private record AccountToken(Long id, Long userId) {
     }
 }

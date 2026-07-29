@@ -142,6 +142,16 @@ small,
   font-size: 0.7rem;
 }
 
+.success-message {
+  display: block;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #edf7e8;
+  color: #426132;
+  font-size: 0.78rem;
+}
+
 form > button {
   width: 100%;
   min-height: 52px;

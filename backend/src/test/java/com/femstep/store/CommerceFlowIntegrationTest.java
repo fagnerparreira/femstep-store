@@ -21,6 +21,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.time.LocalDateTime;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -130,7 +131,7 @@ class CommerceFlowIntegrationTest {
                 SELECT count(*)
                 FROM notification_outbox n
                 JOIN orders o ON o.id::text = n.aggregate_id
-                WHERE o.public_number = ?
+                WHERE o.public_number = ? AND n.aggregate_type = 'ORDER'
                 """, Integer.class, order.path("orderNumber").asText());
         assertThat(notifications).isEqualTo(2);
     }
@@ -180,6 +181,80 @@ class CommerceFlowIntegrationTest {
                 .andExpect(status().isUnauthorized());
         mockMvc.perform(post("/api/auth/refresh").cookie(rotated))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void passwordResetUsesASingleUseTokenAndRevokesSessions() throws Exception {
+        String email = uniqueEmail("password-reset");
+        MvcResult registration = mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerBody(email)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        Cookie originalSession = refreshCookie(registration);
+
+        mockMvc.perform(post("/api/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("email", email))))
+                .andExpect(status().isAccepted());
+        mockMvc.perform(post("/api/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "email", uniqueEmail("unknown")
+                        ))))
+                .andExpect(status().isAccepted());
+
+        String token = accountToken(email, "PASSWORD_RESET_REQUESTED");
+        String newPassword = "NovaSenhaSegura123!";
+        String resetBody = objectMapper.writeValueAsString(Map.of(
+                "token", token,
+                "password", newPassword
+        ));
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(resetBody))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(resetBody))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/auth/refresh").cookie(originalSession))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "email", email,
+                                "password", newPassword
+                        ))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void customerCanVerifyEmailOnlyOnce() throws Exception {
+        String email = uniqueEmail("verify-email");
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerBody(email)))
+                .andExpect(status().isCreated());
+
+        String token = accountToken(email, "EMAIL_VERIFICATION_REQUESTED");
+        String body = objectMapper.writeValueAsString(Map.of("token", token));
+        mockMvc.perform(post("/api/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
+
+        LocalDateTime verifiedAt = jdbcTemplate.queryForObject(
+                "SELECT email_verified_at FROM users WHERE email = ?",
+                LocalDateTime.class,
+                email
+        );
+        assertThat(verifiedAt).isNotNull();
+        mockMvc.perform(post("/api/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -634,6 +709,22 @@ class CommerceFlowIntegrationTest {
         String prefix = "femstep_refresh=";
         String value = header.substring(prefix.length(), header.indexOf(';'));
         return new Cookie("femstep_refresh", value);
+    }
+
+    private String accountToken(String email, String eventType) throws Exception {
+        String payload = jdbcTemplate.queryForObject("""
+                SELECT n.payload_json
+                FROM notification_outbox n
+                JOIN users u ON u.id::text = n.aggregate_id
+                WHERE u.email = ? AND n.event_type = ?
+                ORDER BY n.id DESC
+                LIMIT 1
+                """,
+                String.class,
+                email,
+                eventType
+        );
+        return json(payload).path("token").asText();
     }
 
     private String uniqueEmail(String prefix) {

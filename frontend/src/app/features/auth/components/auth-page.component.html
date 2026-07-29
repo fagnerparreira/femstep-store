@@ -10,15 +10,11 @@
   <section class="auth-content">
     <div class="auth-card">
       <a routerLink="/" class="back-link">← Voltar para a loja</a>
-      <span class="eyebrow">{{ mode === 'login' ? 'Boas-vindas de volta' : 'Crie sua conta' }}</span>
-      <h1>{{ mode === 'login' ? 'Entre na FemStep' : 'Vamos caminhar juntas' }}</h1>
-      <p>
-        {{ mode === 'login'
-          ? 'Acesse seus pedidos, endereços e uma sacola sincronizada.'
-          : 'Cadastre-se para finalizar compras e acompanhar cada pedido.' }}
-      </p>
+      <span class="eyebrow">{{ eyebrow }}</span>
+      <h1>{{ title }}</h1>
+      <p>{{ intro }}</p>
 
-      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <form *ngIf="mode !== 'verify'" [formGroup]="form" (ngSubmit)="submit()" novalidate>
         <div class="name-grid" *ngIf="mode === 'register'">
           <label>
             <span>Nome</span>
@@ -32,7 +28,7 @@
           </label>
         </div>
 
-        <label>
+        <label *ngIf="mode === 'login' || mode === 'register' || mode === 'forgot'">
           <span>E-mail</span>
           <input type="email" formControlName="email" autocomplete="email" placeholder="voce@exemplo.com">
           <small *ngIf="fieldInvalid('email')">Digite um e-mail válido.</small>
@@ -44,24 +40,42 @@
           <small *ngIf="fieldInvalid('cpf')">O CPF deve conter 11 números.</small>
         </label>
 
-        <label>
+        <label *ngIf="mode === 'login' || mode === 'register' || mode === 'reset'">
           <span>Senha</span>
-          <input type="password" formControlName="password" autocomplete="current-password" placeholder="Mínimo de 12 caracteres">
+          <input type="password" formControlName="password" [autocomplete]="mode === 'login' ? 'current-password' : 'new-password'" placeholder="Mínimo de 12 caracteres">
           <small *ngIf="fieldInvalid('password')">Use uma senha com pelo menos 12 caracteres.</small>
         </label>
 
-        <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+        <label *ngIf="mode === 'reset'">
+          <span>Confirme a nova senha</span>
+          <input type="password" formControlName="confirmPassword" autocomplete="new-password">
+          <small *ngIf="fieldInvalid('confirmPassword')">Repita a nova senha.</small>
+        </label>
 
-        <button type="submit" [disabled]="isSubmitting">
-          {{ isSubmitting ? 'Aguarde...' : (mode === 'login' ? 'Entrar' : 'Criar minha conta') }}
+        <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+        <p class="success-message" *ngIf="successMessage">{{ successMessage }}</p>
+
+        <button type="submit" [disabled]="isSubmitting || (mode === 'reset' && !token)">
+          {{ isSubmitting ? 'Aguarde...' : submitLabel }}
         </button>
       </form>
 
+      <p class="error-message" *ngIf="mode === 'verify' && errorMessage">{{ errorMessage }}</p>
+      <p class="success-message" *ngIf="mode === 'verify' && successMessage">{{ successMessage }}</p>
+      <p class="switch-mode" *ngIf="mode === 'verify' || (mode === 'reset' && successMessage)">
+        <a routerLink="/auth/login">Ir para o login</a>
+      </p>
+      <p class="switch-mode" *ngIf="mode === 'login'">
+        <a routerLink="/auth/forgot-password">Esqueci minha senha</a>
+      </p>
       <p class="switch-mode" *ngIf="mode === 'login'">
         Ainda não tem conta? <a routerLink="/auth/register">Cadastre-se</a>
       </p>
       <p class="switch-mode" *ngIf="mode === 'register'">
         Já tem uma conta? <a routerLink="/auth/login">Entrar</a>
+      </p>
+      <p class="switch-mode" *ngIf="mode === 'forgot' || mode === 'reset'">
+        <a routerLink="/auth/login">Voltar ao login</a>
       </p>
     </div>
   </section>

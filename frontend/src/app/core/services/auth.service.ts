@@ -42,6 +42,34 @@ export class AuthService {
       .pipe(map(response => this.storeSession(response)));
   }
 
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.apiUrl}/forgot-password`,
+      { email }
+    );
+  }
+
+  resetPassword(token: string, password: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.apiUrl}/reset-password`,
+      { token, password }
+    );
+  }
+
+  verifyEmail(token: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.apiUrl}/verify-email`,
+      { token }
+    );
+  }
+
+  resendVerification(): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.apiUrl}/resend-verification`,
+      {}
+    );
+  }
+
   logout(): void {
     this.http
       .post<void>(`${this.apiUrl}/logout`, {}, { withCredentials: true })

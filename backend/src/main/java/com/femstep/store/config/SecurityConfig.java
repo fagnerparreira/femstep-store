@@ -60,7 +60,10 @@ public class SecurityConfig {
                         "/api/auth/login",
                         "/api/auth/register",
                         "/api/auth/refresh",
-                        "/api/auth/logout"
+                        "/api/auth/logout",
+                        "/api/auth/forgot-password",
+                        "/api/auth/reset-password",
+                        "/api/auth/verify-email"
                 ).permitAll()
                 .requestMatchers("/api/health", "/actuator/health", "/actuator/health/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()

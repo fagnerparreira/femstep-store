@@ -31,6 +31,24 @@ export const routes: Routes = [
     title: 'Criar conta | FemStep Store'
   },
   {
+    path: 'auth/forgot-password',
+    loadComponent: () => import('./features/auth/components/auth-page.component').then(m => m.AuthPageComponent),
+    data: { mode: 'forgot' },
+    title: 'Recuperar senha | FemStep Store'
+  },
+  {
+    path: 'auth/reset-password',
+    loadComponent: () => import('./features/auth/components/auth-page.component').then(m => m.AuthPageComponent),
+    data: { mode: 'reset' },
+    title: 'Redefinir senha | FemStep Store'
+  },
+  {
+    path: 'auth/verify-email',
+    loadComponent: () => import('./features/auth/components/auth-page.component').then(m => m.AuthPageComponent),
+    data: { mode: 'verify' },
+    title: 'Verificar e-mail | FemStep Store'
+  },
+  {
     path: 'account',
     loadComponent: () => import('./features/account/components/account-page.component').then(m => m.AccountPageComponent),
     canActivate: [authGuard],
