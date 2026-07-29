@@ -19,6 +19,15 @@ services:
       timeout: 5s
       retries: 5
 
+  mailpit:
+    image: axllent/mailpit:v1.30.0
+    container_name: ${MAILPIT_CONTAINER_NAME:-femstep-mailpit}
+    ports:
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+    networks:
+      - femstep-network
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -37,11 +46,24 @@ services:
       PAYMENTS_SANDBOX_ENABLED: ${PAYMENTS_SANDBOX_ENABLED:-false}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      NOTIFICATIONS_EMAIL_ENABLED: ${NOTIFICATIONS_EMAIL_ENABLED:-true}
+      NOTIFICATIONS_POLL_INTERVAL_MS: ${NOTIFICATIONS_POLL_INTERVAL_MS:-5000}
+      EMAIL_HOST: ${EMAIL_HOST:-mailpit}
+      EMAIL_PORT: ${EMAIL_PORT:-1025}
+      EMAIL_USERNAME: ${EMAIL_USERNAME:-}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD:-}
+      EMAIL_SMTP_AUTH: ${EMAIL_SMTP_AUTH:-false}
+      EMAIL_STARTTLS_ENABLED: ${EMAIL_STARTTLS_ENABLED:-false}
+      EMAIL_STARTTLS_REQUIRED: ${EMAIL_STARTTLS_REQUIRED:-false}
+      EMAIL_FROM: ${EMAIL_FROM:-nao-responda@femstep.local}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:4200}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
     depends_on:
       postgres:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     networks:
       - femstep-network
     restart: unless-stopped
