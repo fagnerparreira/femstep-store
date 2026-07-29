@@ -8,6 +8,7 @@ import com.femstep.store.dto.auth.AuthResponse;
 import com.femstep.store.dto.auth.LoginRequest;
 import com.femstep.store.dto.auth.RegisterRequest;
 import com.femstep.store.dto.auth.UserResponse;
+import com.femstep.store.dto.auth.UpdateProfileRequest;
 import com.femstep.store.exception.ConflictException;
 import com.femstep.store.exception.InvalidSessionException;
 import com.femstep.store.exception.ResourceNotFoundException;
@@ -136,6 +137,23 @@ public class AuthService {
         User user = userRepository.findByEmail(normalizeEmail(email))
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
         return UserResponse.from(user);
+    }
+
+    @Transactional
+    public UserResponse updateProfile(String email, UpdateProfileRequest request) {
+        User user = userRepository.findByEmail(normalizeEmail(email))
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+        String cpf = normalizeOptionalDigits(request.cpf());
+        if (cpf != null && userRepository.findByCpf(cpf)
+                .filter(existing -> !existing.getId().equals(user.getId()))
+                .isPresent()) {
+            throw new ConflictException("CPF já está em uso");
+        }
+
+        user.setFirstName(request.firstName().trim());
+        user.setLastName(request.lastName().trim());
+        user.setCpf(cpf);
+        return UserResponse.from(userRepository.save(user));
     }
 
     private AuthResult createAuthResult(User user, UserDetails userDetails, ClientInfo clientInfo) {

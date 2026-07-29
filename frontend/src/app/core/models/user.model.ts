@@ -31,5 +31,12 @@ export interface AuthResponse {
   firstName: string;
   lastName: string;
   roles: string[];
+  emailVerified?: boolean;
   expiresIn: number;
+}
+
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  cpf: string;
 }

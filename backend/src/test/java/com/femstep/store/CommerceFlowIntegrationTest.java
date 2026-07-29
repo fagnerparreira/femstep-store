@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -243,6 +244,26 @@ class CommerceFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString());
         assertThat(state.path("favorite").asBoolean()).isFalse();
+    }
+
+    @Test
+    void customerCanUpdateTheirProfile() throws Exception {
+        String bearer = registerBearer(uniqueEmail("profile"));
+
+        JsonNode profile = json(mockMvc.perform(put("/api/account/profile")
+                        .header(HttpHeaders.AUTHORIZATION, bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "firstName", "Maria",
+                                "lastName", "Silva",
+                                "cpf", "12345678901"
+                        ))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+
+        assertThat(profile.path("firstName").asText()).isEqualTo("Maria");
+        assertThat(profile.path("lastName").asText()).isEqualTo("Silva");
+        assertThat(profile.path("cpf").asText()).isEqualTo("12345678901");
     }
 
     @Test

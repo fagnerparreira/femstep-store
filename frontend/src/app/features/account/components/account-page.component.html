@@ -9,7 +9,19 @@
         <span>Seus dados</span>
         <h2>{{ user.firstName }} {{ user.lastName }}</h2>
         <p>{{ user.email }}</p>
-        <button type="button">Editar perfil</button>
+        <p *ngIf="user.cpf">CPF {{ user.cpf }}</p>
+        <button type="button" (click)="openProfile()">Editar perfil</button>
+        <p class="feedback" *ngIf="feedbackMessage">{{ feedbackMessage }}</p>
+
+        <form *ngIf="editing" [formGroup]="form" (ngSubmit)="saveProfile()">
+          <label>Nome<input formControlName="firstName"></label>
+          <label>Sobrenome<input formControlName="lastName"></label>
+          <label>CPF<input formControlName="cpf" maxlength="11" inputmode="numeric"></label>
+          <div>
+            <button type="submit" [disabled]="isSubmitting">{{ isSubmitting ? 'Salvando...' : 'Salvar' }}</button>
+            <button type="button" (click)="editing = false">Cancelar</button>
+          </div>
+        </form>
       </section>
 
       <a routerLink="/account/orders" class="account-link">
@@ -22,6 +34,12 @@
         <span>Endereços</span>
         <strong>Organize suas entregas</strong>
         <small>Gerenciar →</small>
+      </a>
+
+      <a routerLink="/favorites" class="account-link">
+        <span>Favoritos</span>
+        <strong>Revise sua seleção</strong>
+        <small>Abrir lista →</small>
       </a>
 
       <a routerLink="/catalog" class="account-link">

@@ -10,7 +10,7 @@ import {
   shareReplay,
   tap
 } from 'rxjs';
-import { AuthResponse, RegisterRequest, User } from '../models/user.model';
+import { AuthResponse, RegisterRequest, UpdateProfileRequest, User } from '../models/user.model';
 import { AuthTokenStore } from './auth-token-store.service';
 
 @Injectable({ providedIn: 'root' })
@@ -47,6 +47,14 @@ export class AuthService {
       .post<void>(`${this.apiUrl}/logout`, {}, { withCredentials: true })
       .pipe(catchError(() => of(undefined)))
       .subscribe(() => this.clearSession());
+  }
+
+  updateProfile(request: UpdateProfileRequest): Observable<User> {
+    return this.http.put<User>('/api/account/profile', request).pipe(
+      tap(user => {
+        this.currentUserSubject.next({ ...user, active: true });
+      })
+    );
   }
 
   restoreSession(): Observable<User | null> {
