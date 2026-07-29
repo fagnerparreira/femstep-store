@@ -10,6 +10,23 @@
 Cada ambiente precisa de banco, `JWT_SECRET`, conta administrativa e credenciais
 externas próprios.
 
+O modelo versionado [.env.staging.example](../.env.staging.example) lista apenas
+os nomes necessários. Copie-os para o secret manager da hospedagem; nunca crie
+um `.env` de staging dentro do repositório.
+
+## Checklist de staging
+
+1. criar domínio HTTPS de homologação e banco PostgreSQL exclusivo;
+2. gerar `DB_PASSWORD`, `JWT_SECRET` e senha administrativa exclusivos;
+3. configurar `CORS_ALLOWED_ORIGINS` e `PUBLIC_APP_URL` com o domínio HTTPS;
+4. manter `PAYMENTS_SANDBOX_ENABLED=true`;
+5. configurar SMTP de teste com remetente/domínio verificados;
+6. executar CI, backup, migrations e readiness;
+7. testar cadastro, verificação de e-mail, recuperação de senha, catálogo,
+   carrinho, checkout sandbox, pagamento, pedido e painel administrativo;
+8. confirmar que cookies têm `Secure`, que a API não aceita origem indevida e
+   que a outbox não acumula eventos em `FAILED`.
+
 ## Verificações de saúde
 
 - liveness: `/actuator/health/liveness`;
@@ -62,6 +79,7 @@ criptografado, ter retenção definida e acesso restrito.
   de webhook;
 - alertar para aumento de 5xx, readiness indisponível, falhas de webhook,
   notificações em `FAILED` e reservas expiradas acumuladas;
+- acompanhar `api_rate_limits` para picos anormais sem registrar IP bruto;
 - limitar a retenção de logs e auditoria conforme a necessidade operacional.
 
 ## Integrações externas pendentes
@@ -72,8 +90,11 @@ Para ativar venda real ainda são obrigatórios:
 - segredo e validação oficial de assinatura de webhook;
 - conta do serviço de frete, CEP de origem, pesos e dimensões reais;
 - serviço transacional de e-mail e domínio remetente verificado;
-- processador da `notification_outbox` com retry limitado e dead letter;
 - domínio, certificado HTTPS e URLs públicas de callback.
+
+O processador da `notification_outbox` já possui claim concorrente,
+recuperação de mensagens travadas, backoff e estado `FAILED` após cinco
+tentativas. O Mailpit é somente local; não o exponha publicamente.
 
 Esses valores devem entrar por secret manager ou variáveis de ambiente. Não
 devem ser versionados em `.env`, documentação, imagens Docker ou logs.

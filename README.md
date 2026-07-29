@@ -17,9 +17,11 @@ e painel administrativo.
 - Histórico e detalhe dos pedidos
 - Cadastro e gerenciamento de endereços, com preenchimento opcional pelo ViaCEP
 - Favoritos persistentes e perfil editável
-- Painel administrativo com métricas, produtos, variações, estoque, pedidos e cupons
+- Painel administrativo com categorias, produtos, galerias, variações, estoque, pedidos e cupons
 - Contratos isolados para pagamento e frete, com adaptadores locais substituíveis
-- Outbox transacional para notificações de pedido, pagamento e envio
+- Recuperação de senha e verificação de e-mail com tokens de uso único
+- Outbox transacional com retry e entrega SMTP; Mailpit para inspeção local
+- Rate limit compartilhado no PostgreSQL para autenticação e checkout
 - Catálogo inicial com 12 produtos, 6 categorias, imagens e cupom `BEMVINDA10`
 - Migrações Flyway e teste de integração completo com PostgreSQL/Testcontainers
 
@@ -59,6 +61,7 @@ Endereços locais:
 - Loja: `http://localhost:4200`
 - API: `http://localhost:8080`
 - Health check: `http://localhost:8080/api/health`
+- Caixa de e-mail local: `http://localhost:8025`
 - Swagger local, quando habilitado: `http://localhost:8080/swagger-ui.html`
 
 O Nginx do frontend encaminha automaticamente as chamadas em `/api` para o
@@ -119,6 +122,7 @@ Configure `ADMIN_EMAIL` e `ADMIN_PASSWORD`, entre com essa conta e abra
 - mover pedidos pagos para preparação, envio e entrega;
 - registrar código de rastreio no envio.
 - criar, editar, ativar e desativar cupons sem apagar o histórico.
+- criar e editar categorias, dados de produto, variações e galerias de imagens.
 
 ## Produção
 
@@ -142,9 +146,9 @@ mas não movimenta dinheiro real.
   quando `PAYMENTS_SANDBOX_ENABLED=false`.
 - `FixedShippingGateway` calcula apenas uma estimativa local. Um provedor real deve
   implementar `ShippingGateway`.
-- eventos de e-mail são gravados em `notification_outbox` na mesma transação do
-  pedido. O envio externo depende da escolha e das credenciais do serviço
-  transacional; nenhum token ou segredo é embutido no código.
+- eventos de e-mail são gravados em `notification_outbox`, enviados com retry e
+  inspecionados localmente no Mailpit. Em staging/produção configure um SMTP
+  transacional e um domínio remetente verificado.
 - ativação de Mercado Pago, Melhor Envio e e-mail exige contas sandbox próprias,
   CEP de origem e credenciais fornecidas por variáveis/secret manager.
 
