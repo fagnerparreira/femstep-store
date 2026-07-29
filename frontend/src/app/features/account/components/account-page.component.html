@@ -1,0 +1,40 @@
+<main class="account-page">
+  <div class="container" *ngIf="user$ | async as user">
+    <span class="eyebrow">Minha conta</span>
+    <h1>Olá, {{ user.firstName }}.</h1>
+    <p class="intro">Gerencie seus dados e acompanhe suas compras em um só lugar.</p>
+
+    <div class="account-grid">
+      <section class="profile-card">
+        <span>Seus dados</span>
+        <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+        <p>{{ user.email }}</p>
+        <button type="button">Editar perfil</button>
+      </section>
+
+      <a routerLink="/account/orders" class="account-link">
+        <span>Pedidos</span>
+        <strong>Acompanhe suas compras</strong>
+        <small>Ver histórico →</small>
+      </a>
+
+      <a routerLink="/account/addresses" class="account-link">
+        <span>Endereços</span>
+        <strong>Organize suas entregas</strong>
+        <small>Gerenciar →</small>
+      </a>
+
+      <a routerLink="/catalog" class="account-link">
+        <span>Novidades</span>
+        <strong>Descubra seu próximo par</strong>
+        <small>Explorar →</small>
+      </a>
+
+      <a *ngIf="user.roles.includes('ROLE_ADMIN')" routerLink="/admin" class="account-link">
+        <span>Administração</span>
+        <strong>Gerencie produtos e pedidos</strong>
+        <small>Abrir painel →</small>
+      </a>
+    </div>
+  </div>
+</main>

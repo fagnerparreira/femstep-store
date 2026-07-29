@@ -1,52 +1,85 @@
 import { HttpClient } from '@angular/common/http';
-import { isPlatformBrowser } from '@angular/common';
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { BehaviorSubject, map, Observable, tap } from 'rxjs';
+import { Injectable } from '@angular/core';
+import {
+  BehaviorSubject,
+  catchError,
+  finalize,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  tap
+} from 'rxjs';
 import { AuthResponse, RegisterRequest, User } from '../models/user.model';
+import { AuthTokenStore } from './auth-token-store.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly apiUrl = '/api/auth';
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
-  private isLoggedInSubject = new BehaviorSubject<boolean>(false);
+  private readonly currentUserSubject = new BehaviorSubject<User | null>(null);
+  private readonly isLoggedInSubject = new BehaviorSubject(false);
+  private restoreRequest$: Observable<User | null> | null = null;
 
-  currentUser$ = this.currentUserSubject.asObservable();
-  isLoggedIn$ = this.isLoggedInSubject.asObservable();
+  readonly currentUser$ = this.currentUserSubject.asObservable();
+  readonly isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
   constructor(
     private readonly http: HttpClient,
-    @Inject(PLATFORM_ID) private readonly platformId: object
+    private readonly tokenStore: AuthTokenStore
   ) {
-    this.checkAuthStatus();
+    this.restoreSession().subscribe();
   }
 
   login(email: string, password: string): Observable<User> {
     return this.http
-      .post<AuthResponse>(`${this.apiUrl}/login`, { email, password })
-      .pipe(
-        tap(response => this.storeSession(response)),
-        map(response => this.toUser(response))
-      );
+      .post<AuthResponse>(`${this.apiUrl}/login`, { email, password }, { withCredentials: true })
+      .pipe(map(response => this.storeSession(response)));
   }
 
   register(userData: RegisterRequest): Observable<User> {
     return this.http
-      .post<AuthResponse>(`${this.apiUrl}/register`, userData)
-      .pipe(
-        tap(response => this.storeSession(response)),
-        map(response => this.toUser(response))
-      );
+      .post<AuthResponse>(`${this.apiUrl}/register`, userData, { withCredentials: true })
+      .pipe(map(response => this.storeSession(response)));
   }
 
   logout(): void {
-    this.currentUserSubject.next(null);
-    this.isLoggedInSubject.next(false);
-    if (isPlatformBrowser(this.platformId)) {
-      sessionStorage.removeItem('currentUser');
-      sessionStorage.removeItem('authToken');
+    this.http
+      .post<void>(`${this.apiUrl}/logout`, {}, { withCredentials: true })
+      .pipe(catchError(() => of(undefined)))
+      .subscribe(() => this.clearSession());
+  }
+
+  restoreSession(): Observable<User | null> {
+    const currentUser = this.currentUserSubject.value;
+    if (currentUser && this.tokenStore.get()) {
+      return of(currentUser);
     }
+    if (this.restoreRequest$) {
+      return this.restoreRequest$;
+    }
+
+    this.restoreRequest$ = this.http
+      .post<AuthResponse>(`${this.apiUrl}/refresh`, {}, { withCredentials: true })
+      .pipe(
+        map(response => this.storeSession(response)),
+        catchError(() => {
+          this.clearSession();
+          return of(null);
+        }),
+        finalize(() => {
+          this.restoreRequest$ = null;
+        }),
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+
+    return this.restoreRequest$;
+  }
+
+  ensureSession(): Observable<boolean> {
+    if (this.isAuthenticated()) {
+      return of(true);
+    }
+    return this.restoreSession().pipe(map(user => user !== null));
   }
 
   getCurrentUser(): User | null {
@@ -54,43 +87,26 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return this.isLoggedInSubject.value;
+    return this.isLoggedInSubject.value && this.tokenStore.get() !== null;
   }
 
   hasRole(role: string): boolean {
-    const user = this.getCurrentUser();
-    return user ? user.roles.includes(role) : false;
+    return this.currentUserSubject.value?.roles.includes(role) ?? false;
   }
 
-  private checkAuthStatus(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    const storedUser = sessionStorage.getItem('currentUser');
-    const authToken = sessionStorage.getItem('authToken');
-    if (!storedUser || !authToken) {
-      return;
-    }
-
-    try {
-      const user = JSON.parse(storedUser) as User;
-      this.currentUserSubject.next(user);
-      this.isLoggedInSubject.next(true);
-    } catch {
-      this.logout();
-    }
-  }
-
-  private storeSession(response: AuthResponse): void {
+  private storeSession(response: AuthResponse): User {
     const user = this.toUser(response);
+    this.tokenStore.set(response.token);
     this.currentUserSubject.next(user);
     this.isLoggedInSubject.next(true);
+    return user;
+  }
 
-    if (isPlatformBrowser(this.platformId)) {
-      sessionStorage.setItem('authToken', response.token);
-      sessionStorage.setItem('currentUser', JSON.stringify(user));
-    }
+  private clearSession(): void {
+    this.tokenStore.clear();
+    this.currentUserSubject.next(null);
+    this.isLoggedInSubject.next(false);
+    this.restoreRequest$ = null;
   }
 
   private toUser(response: AuthResponse): User {

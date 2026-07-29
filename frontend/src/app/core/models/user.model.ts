@@ -20,7 +20,7 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
-  cpf: string;
+  cpf?: string;
 }
 
 export interface AuthResponse {
@@ -31,4 +31,5 @@ export interface AuthResponse {
   firstName: string;
   lastName: string;
   roles: string[];
+  expiresIn: number;
 }

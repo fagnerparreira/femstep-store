@@ -1,0 +1,45 @@
+<main class="addresses-page">
+  <div class="container">
+    <nav class="breadcrumb"><a routerLink="/account">Minha conta</a><span>/</span><span>Endereços</span></nav>
+    <header>
+      <div><span class="eyebrow">Entregas</span><h1>Meus endereços</h1><p>Salve os locais que você mais usa.</p></div>
+      <button type="button" (click)="openNew()">Adicionar endereço</button>
+    </header>
+
+    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <section class="address-grid" *ngIf="addresses.length">
+      <article *ngFor="let address of addresses" [class.default]="address.defaultAddress">
+        <div class="card-heading"><strong>{{ address.label }}</strong><span *ngIf="address.defaultAddress">Principal</span></div>
+        <h2>{{ address.recipientName }}</h2>
+        <p>{{ address.street }}, {{ address.number }}<br>{{ address.complement }}<br *ngIf="address.complement">{{ address.neighborhood }} · {{ address.city }}/{{ address.state }}<br>CEP {{ address.postalCode }}</p>
+        <div class="actions">
+          <button type="button" (click)="edit(address)">Editar</button>
+          <button type="button" *ngIf="!address.defaultAddress" (click)="makeDefault(address)">Tornar principal</button>
+          <button type="button" class="danger" (click)="remove(address)">Excluir</button>
+        </div>
+      </article>
+    </section>
+    <section class="empty" *ngIf="!addresses.length && !showForm">
+      <h2>Nenhum endereço salvo</h2>
+      <p>Adicione um endereço para agilizar suas próximas compras.</p>
+    </section>
+
+    <form *ngIf="showForm" [formGroup]="form" (ngSubmit)="save()">
+      <div class="form-heading"><h2>{{ editingId ? 'Editar endereço' : 'Novo endereço' }}</h2><button type="button" (click)="showForm = false">Fechar</button></div>
+      <div class="fields">
+        <label>Identificação<input formControlName="label" placeholder="Casa, Trabalho..."></label>
+        <label>Nome de quem recebe<input formControlName="recipientName"></label>
+        <label>CEP<input formControlName="postalCode" maxlength="8" inputmode="numeric"></label>
+        <label>Rua ou avenida<input formControlName="street"></label>
+        <label>Número<input formControlName="number"></label>
+        <label>Complemento<input formControlName="complement"></label>
+        <label>Bairro<input formControlName="neighborhood"></label>
+        <label>Cidade<input formControlName="city"></label>
+        <label>UF<input formControlName="state" maxlength="2"></label>
+        <label>Telefone<input formControlName="phone" inputmode="tel"></label>
+        <label class="checkbox"><input type="checkbox" formControlName="defaultAddress">Usar como endereço principal</label>
+      </div>
+      <button class="save-button" type="submit" [disabled]="isSubmitting">{{ isSubmitting ? 'Salvando...' : 'Salvar endereço' }}</button>
+    </form>
+  </div>
+</main>

@@ -1,0 +1,27 @@
+.addresses-page { min-height: 70vh; padding: 36px 0 80px; background: #fbfaf8; }
+.breadcrumb { display: flex; gap: 8px; color: #776c63; font-size: 14px; margin-bottom: 34px; }
+header, .form-heading, .card-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+header h1 { font-family: Georgia, serif; font-size: clamp(36px, 5vw, 54px); font-weight: 500; margin: 7px 0; }
+.eyebrow { color: #a45d3c; font-size: 12px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+header > button, .save-button { border: 0; border-radius: 999px; padding: 13px 19px; background: #35251f; color: #fff; font-weight: 700; cursor: pointer; }
+.address-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 32px; }
+.address-grid article, form, .empty { background: #fff; border: 1px solid #e6ded8; border-radius: 15px; padding: 24px; }
+.address-grid article.default { border-color: #b98565; box-shadow: inset 0 3px #b98565; }
+.card-heading span { border-radius: 999px; padding: 5px 9px; background: #f4e9e0; color: #925438; font-size: 11px; }
+.address-grid h2 { font-family: Georgia, serif; font-size: 20px; font-weight: 500; }
+.address-grid p { color: #776c63; line-height: 1.65; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; border-top: 1px solid #eee7e1; padding-top: 15px; }
+.actions button, .form-heading button { border: 0; background: transparent; cursor: pointer; text-decoration: underline; }
+.actions .danger { color: #a12622; }
+form { max-width: 850px; margin: 30px auto 0; }
+.form-heading h2 { font-family: Georgia, serif; font-weight: 500; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.fields label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; }
+.fields input { border: 1px solid #d7cec6; border-radius: 8px; padding: 11px; }
+.fields .checkbox { display: flex; align-items: center; }
+.checkbox input { width: auto; }
+.save-button { margin-top: 20px; }
+.empty { margin-top: 30px; text-align: center; }
+.error { color: #a12622; background: #fff0ed; padding: 11px; border-radius: 8px; }
+@media (max-width: 850px) { .address-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 580px) { header { align-items: start; flex-direction: column; } .address-grid, .fields { grid-template-columns: 1fr; } }
