@@ -68,23 +68,25 @@ Atualizado em 29/07/2026 após validação local do fluxo completo.
 | --- | --- | --- | --- |
 | 0 — Fundação visual | Quase concluída | Shell Angular, header, footer, rotas, home, catálogo, estados de carregamento e layout responsivo básico | Auditoria de acessibilidade, teclado e viewports |
 | 1 — Banco e migrations | Quase concluída | Schema comercial, constraints, índices, sessões, carrinho, pedidos, pagamentos, estoque, cupons, auditoria e seed repetível | Ampliar catálogo demonstrativo e validar restauração em banco vazio |
-| 2 — API de catálogo | Parcial avançada | DTOs, paginação, busca, filtros, ordenação, detalhe por slug e operações administrativas básicas | Cache HTTP e CRUD completo de categorias, variantes e imagens |
-| 3 — Loja visual | Parcial avançada | Produtos reais, imagens locais, filtros, galeria, variantes, carrinho e preços em BRL | Favoritos, SEO técnico e cotação real de frete |
-| 4 — Autenticação e conta | Parcial avançada | Cadastro, login, refresh rotativo, logout, `/me`, guards, conta e endereços | Verificação de e-mail, recuperação de senha, perfil e ViaCEP |
-| 5 — Carrinho, checkout e pedidos | Quase concluída | Carrinho visitante/autenticado, cupom, checkout, idempotência, reserva, pedido, cancelamento e histórico | Cobertura de concorrência, sessão expirada e demais cenários críticos |
+| 2 — API de catálogo | Parcial avançada | DTOs, paginação, busca, filtros, ordenação, detalhe por slug, cache HTTP e operações administrativas básicas | CRUD completo de categorias, variantes e imagens |
+| 3 — Loja visual | Quase concluída | Produtos reais, imagens locais, filtros, galeria, variantes, favoritos, SEO dinâmico, carrinho e preços em BRL | Sitemap dependente do domínio e cotação real de frete |
+| 4 — Autenticação e conta | Parcial avançada | Cadastro, login, refresh rotativo, logout, `/me`, guards, perfil, endereços e ViaCEP | Verificação de e-mail e recuperação de senha após definir o provedor transacional |
+| 5 — Carrinho, checkout e pedidos | Quase concluída | Carrinho visitante/autenticado, cupom, checkout, idempotência, reserva, pedido, cancelamento, histórico e concorrência validada | Sessão expirada no E2E e cenários reais do gateway |
 | 6 — Pagamento e frete reais | Fundação pronta | `PaymentGateway`, `ShippingGateway`, adaptadores locais e outbox transacional de notificações | Credenciais sandbox, adaptadores reais, webhooks assinados, reconciliação e processador de e-mail |
-| 7 — Administração | Parcial | Dashboard, produtos, ativação, estoque, pedidos, status, rastreio e auditoria básica | Edição completa, imagens, categorias, cupons, alertas e exportação |
-| 8 — Qualidade e operação | Inicial | Docker, CI, Dependabot, health check e testes básicos | E2E, carga, observabilidade, staging, backup e produção |
+| 7 — Administração | Parcial avançada | Dashboard, produtos, ativação, estoque, pedidos, status, rastreio, cupons e auditoria | Edição completa, imagens, categorias e exportação |
+| 8 — Qualidade e operação | Parcial avançada | Docker, CI, Dependabot, readiness/liveness, request ID, headers de segurança, testes e runbook | E2E visual, carga, staging, restauração de backup e produção |
 
 ### Baseline validado
 
-- Frontend: 2 arquivos de teste, 4 testes aprovados e build Angular/SSR aprovado.
-- Backend: build Maven aprovado e teste de integração com PostgreSQL/Testcontainers.
+- Frontend: 4 arquivos de teste, 8 testes aprovados e build Angular/SSR aprovado.
+- Backend: 11 testes de integração aprovados com PostgreSQL/Testcontainers.
 - Fluxo local validado: cadastro, produto, variante, carrinho, cupom, checkout,
   pedido Pix sandbox e aprovação do pagamento.
 - Execução local: PostgreSQL, API e frontend saudáveis via Docker Compose.
 - Segurança local: refresh token em cookie `HttpOnly`, acesso curto via JWT,
   senha com BCrypt e rotas administrativas protegidas por papel.
+- Operação local: migrations até V4, readiness com banco, CSP/headers de segurança,
+  request ID e auditoria de dependências de produção sem vulnerabilidades.
 
 ### Ordem de execução vigente
 
