@@ -21,6 +21,29 @@ public class Product extends BaseEntity {
     @Column(name = "base_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal basePrice;
 
+    @Column(name = "compare_at_price", precision = 10, scale = 2)
+    private BigDecimal compareAtPrice;
+
+    @Column(name = "short_description", length = 500)
+    private String shortDescription;
+
+    private String material;
+
+    @Column(nullable = false)
+    private String brand = "FemStep";
+
+    @Column(name = "weight_kg", nullable = false, precision = 8, scale = 3)
+    private BigDecimal weightKg;
+
+    @Column(name = "height_cm", nullable = false, precision = 8, scale = 2)
+    private BigDecimal heightCm;
+
+    @Column(name = "width_cm", nullable = false, precision = 8, scale = 2)
+    private BigDecimal widthCm;
+
+    @Column(name = "length_cm", nullable = false, precision = 8, scale = 2)
+    private BigDecimal lengthCm;
+
     @Column(nullable = false)
     private Boolean active = true;
 
@@ -68,6 +91,70 @@ public class Product extends BaseEntity {
 
     public void setBasePrice(BigDecimal basePrice) {
         this.basePrice = basePrice;
+    }
+
+    public BigDecimal getCompareAtPrice() {
+        return compareAtPrice;
+    }
+
+    public void setCompareAtPrice(BigDecimal compareAtPrice) {
+        this.compareAtPrice = compareAtPrice;
+    }
+
+    public String getShortDescription() {
+        return shortDescription;
+    }
+
+    public void setShortDescription(String shortDescription) {
+        this.shortDescription = shortDescription;
+    }
+
+    public String getMaterial() {
+        return material;
+    }
+
+    public void setMaterial(String material) {
+        this.material = material;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public BigDecimal getWeightKg() {
+        return weightKg;
+    }
+
+    public void setWeightKg(BigDecimal weightKg) {
+        this.weightKg = weightKg;
+    }
+
+    public BigDecimal getHeightCm() {
+        return heightCm;
+    }
+
+    public void setHeightCm(BigDecimal heightCm) {
+        this.heightCm = heightCm;
+    }
+
+    public BigDecimal getWidthCm() {
+        return widthCm;
+    }
+
+    public void setWidthCm(BigDecimal widthCm) {
+        this.widthCm = widthCm;
+    }
+
+    public BigDecimal getLengthCm() {
+        return lengthCm;
+    }
+
+    public void setLengthCm(BigDecimal lengthCm) {
+        this.lengthCm = lengthCm;
     }
 
     public Boolean getActive() {

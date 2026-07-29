@@ -23,6 +23,13 @@ public class ProductVariant extends BaseEntity {
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity = 0;
 
+    @Column(name = "reserved_quantity", nullable = false)
+    private Integer reservedQuantity = 0;
+
+    @Version
+    @Column(nullable = false)
+    private Long version = 0L;
+
     @Column(name = "price_override", precision = 10, scale = 2)
     private BigDecimal priceOverride;
 
@@ -64,6 +71,18 @@ public class ProductVariant extends BaseEntity {
 
     public void setStockQuantity(Integer stockQuantity) {
         this.stockQuantity = stockQuantity;
+    }
+
+    public Integer getReservedQuantity() {
+        return reservedQuantity;
+    }
+
+    public void setReservedQuantity(Integer reservedQuantity) {
+        this.reservedQuantity = reservedQuantity;
+    }
+
+    public int getAvailableQuantity() {
+        return stockQuantity - reservedQuantity;
     }
 
     public BigDecimal getPriceOverride() {

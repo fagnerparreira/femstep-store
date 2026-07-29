@@ -15,6 +15,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     boolean existsBySlug(String slug);
     
     List<Category> findByActiveTrueOrderByCreatedAt();
+
+    List<Category> findByActiveTrueOrderByNameAsc();
     
     List<Category> findByParentCategoryIsNullAndActiveTrueOrderByCreatedAt();
     
