@@ -15,7 +15,10 @@ O resultado esperado é uma loja própria, inspirada na organização e na clare
 visual de grandes lojas de calçados, sem copiar marca, textos, fotos ou identidade
 visual de terceiros.
 
-## 2. Diagnóstico do repositório
+## 2. Diagnóstico inicial do repositório
+
+> Registro histórico: esta seção descreve o estado encontrado em 28/07/2026.
+> O acompanhamento vigente está na seção "Progresso da implementação".
 
 ### O que já pode ser aproveitado
 
@@ -56,6 +59,40 @@ visual de terceiros.
 - Frontend: 2 arquivos de teste e 4 testes aprovados; build Angular aprovado.
 - Backend: build Maven aprovado, mas não há nenhum teste Java.
 - O branch já tinha uma alteração local em `backend/pom.xml`; ela foi preservada.
+
+## 2.1. Progresso da implementação
+
+Atualizado em 29/07/2026 após validação local do fluxo completo.
+
+| Fase | Estado | Entregue | Próximo aceite |
+| --- | --- | --- | --- |
+| 0 — Fundação visual | Quase concluída | Shell Angular, header, footer, rotas, home, catálogo, estados de carregamento e layout responsivo básico | Auditoria de acessibilidade, teclado e viewports |
+| 1 — Banco e migrations | Quase concluída | Schema comercial, constraints, índices, sessões, carrinho, pedidos, pagamentos, estoque, cupons, auditoria e seed repetível | Ampliar catálogo demonstrativo e validar restauração em banco vazio |
+| 2 — API de catálogo | Parcial avançada | DTOs, paginação, busca, filtros, ordenação, detalhe por slug e operações administrativas básicas | Cache HTTP e CRUD completo de categorias, variantes e imagens |
+| 3 — Loja visual | Parcial avançada | Produtos reais, imagens locais, filtros, galeria, variantes, carrinho e preços em BRL | Favoritos, SEO técnico e cotação real de frete |
+| 4 — Autenticação e conta | Parcial avançada | Cadastro, login, refresh rotativo, logout, `/me`, guards, conta e endereços | Verificação de e-mail, recuperação de senha, perfil e ViaCEP |
+| 5 — Carrinho, checkout e pedidos | Quase concluída | Carrinho visitante/autenticado, cupom, checkout, idempotência, reserva, pedido, cancelamento e histórico | Cobertura de concorrência, sessão expirada e demais cenários críticos |
+| 6 — Pagamento e frete reais | Não iniciada | Contratos de dados e sandbox local | Adaptadores reais, webhooks, reconciliação, frete e e-mail |
+| 7 — Administração | Parcial | Dashboard, produtos, ativação, estoque, pedidos, status, rastreio e auditoria básica | Edição completa, imagens, categorias, cupons, alertas e exportação |
+| 8 — Qualidade e operação | Inicial | Docker, CI, Dependabot, health check e testes básicos | E2E, carga, observabilidade, staging, backup e produção |
+
+### Baseline validado
+
+- Frontend: 2 arquivos de teste, 4 testes aprovados e build Angular/SSR aprovado.
+- Backend: build Maven aprovado e teste de integração com PostgreSQL/Testcontainers.
+- Fluxo local validado: cadastro, produto, variante, carrinho, cupom, checkout,
+  pedido Pix sandbox e aprovação do pagamento.
+- Execução local: PostgreSQL, API e frontend saudáveis via Docker Compose.
+- Segurança local: refresh token em cookie `HttpOnly`, acesso curto via JWT,
+  senha com BCrypt e rotas administrativas protegidas por papel.
+
+### Ordem de execução vigente
+
+1. estabilizar o MVP e cobrir os cenários críticos;
+2. fechar lacunas essenciais das Fases 0–5;
+3. completar as operações administrativas prioritárias;
+4. implementar integrações externas atrás de contratos simples;
+5. preparar homologação e produção sem compartilhar credenciais entre ambientes.
 
 ## 3. Escopo do MVP comercial
 
