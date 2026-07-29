@@ -10,7 +10,9 @@ import com.femstep.store.dto.admin.AdminProductDetailsResponse;
 import com.femstep.store.dto.admin.AdminProductRequest;
 import com.femstep.store.dto.admin.AdminProductResponse;
 import com.femstep.store.dto.admin.AdminProductUpdateRequest;
+import com.femstep.store.dto.admin.AdminVariantCreateRequest;
 import com.femstep.store.dto.admin.AdminVariantResponse;
+import com.femstep.store.dto.admin.AdminVariantUpdateRequest;
 import com.femstep.store.exception.BusinessRuleException;
 import com.femstep.store.exception.ConflictException;
 import com.femstep.store.exception.ResourceNotFoundException;
@@ -212,6 +214,98 @@ public class AdminService {
         }
         audit(adminEmail, active ? "ACTIVATE_PRODUCT" : "DEACTIVATE_PRODUCT", "PRODUCT", productId, null);
         return product(productId);
+    }
+
+    @Transactional
+    public AdminVariantResponse createVariant(
+            Long productId,
+            AdminVariantCreateRequest request,
+            String adminEmail
+    ) {
+        ensureProduct(productId);
+        try {
+            Long variantId = jdbcTemplate.queryForObject("""
+                    INSERT INTO product_variants (
+                        sku, size, color, stock_quantity, reserved_quantity,
+                        price_override, active, product_id
+                    ) VALUES (?, ?, ?, ?, 0, ?, true, ?)
+                    RETURNING id
+                    """,
+                    Long.class,
+                    request.sku().trim().toUpperCase(),
+                    request.size(),
+                    request.color().trim(),
+                    request.stock(),
+                    request.priceOverride(),
+                    productId
+            );
+            if (request.stock() > 0) {
+                jdbcTemplate.update("""
+                        INSERT INTO inventory_movements (
+                            variant_id, movement_type, quantity, stock_before,
+                            stock_after, reason, created_by_user_id
+                        ) VALUES (?, 'INBOUND', ?, 0, ?, 'Estoque inicial da variação', ?)
+                        """,
+                        variantId,
+                        request.stock(),
+                        request.stock(),
+                        userId(adminEmail)
+                );
+            }
+            audit(adminEmail, "CREATE_VARIANT", "PRODUCT_VARIANT", variantId, request.sku());
+            return variant(variantId);
+        } catch (DuplicateKeyException exception) {
+            throw new ConflictException("Já existe um SKU ou uma variação com estes dados");
+        }
+    }
+
+    @Transactional
+    public AdminVariantResponse updateVariant(
+            Long variantId,
+            AdminVariantUpdateRequest request,
+            String adminEmail
+    ) {
+        try {
+            int updated = jdbcTemplate.update("""
+                    UPDATE product_variants
+                    SET sku = ?, size = ?, color = ?, price_override = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    request.sku().trim().toUpperCase(),
+                    request.size(),
+                    request.color().trim(),
+                    request.priceOverride(),
+                    variantId
+            );
+            if (updated != 1) {
+                throw new ResourceNotFoundException("Variação não encontrada");
+            }
+            audit(adminEmail, "UPDATE_VARIANT", "PRODUCT_VARIANT", variantId, request.sku());
+            return variant(variantId);
+        } catch (DuplicateKeyException exception) {
+            throw new ConflictException("Já existe um SKU ou uma variação com estes dados");
+        }
+    }
+
+    @Transactional
+    public AdminVariantResponse toggleVariant(Long variantId, boolean active, String adminEmail) {
+        int updated = jdbcTemplate.update(
+                "UPDATE product_variants SET active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                active,
+                variantId
+        );
+        if (updated != 1) {
+            throw new ResourceNotFoundException("Variação não encontrada");
+        }
+        audit(
+                adminEmail,
+                active ? "ACTIVATE_VARIANT" : "DEACTIVATE_VARIANT",
+                "PRODUCT_VARIANT",
+                variantId,
+                null
+        );
+        return variant(variantId);
     }
 
     @Transactional
@@ -623,7 +717,7 @@ public class AdminService {
 
     private List<AdminVariantResponse> inventory(Long productId) {
         return jdbcTemplate.query("""
-                        SELECT id, sku, size, color, stock_quantity,
+                        SELECT id, sku, size, color, price_override, stock_quantity,
                                reserved_quantity, active
                         FROM product_variants
                         WHERE product_id = ?
@@ -634,6 +728,7 @@ public class AdminService {
                         rs.getString("sku"),
                         rs.getInt("size"),
                         rs.getString("color"),
+                        rs.getBigDecimal("price_override"),
                         rs.getInt("stock_quantity"),
                         rs.getInt("reserved_quantity"),
                         rs.getInt("stock_quantity") - rs.getInt("reserved_quantity"),
@@ -641,6 +736,29 @@ public class AdminService {
                 ),
                 productId
         );
+    }
+
+    private AdminVariantResponse variant(Long variantId) {
+        return jdbcTemplate.query("""
+                        SELECT id, sku, size, color, price_override, stock_quantity,
+                               reserved_quantity, active
+                        FROM product_variants
+                        WHERE id = ?
+                        """,
+                (rs, rowNum) -> new AdminVariantResponse(
+                        rs.getLong("id"),
+                        rs.getString("sku"),
+                        rs.getInt("size"),
+                        rs.getString("color"),
+                        rs.getBigDecimal("price_override"),
+                        rs.getInt("stock_quantity"),
+                        rs.getInt("reserved_quantity"),
+                        rs.getInt("stock_quantity") - rs.getInt("reserved_quantity"),
+                        rs.getBoolean("active")
+                ),
+                variantId
+        ).stream().findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Variação não encontrada"));
     }
 
     private AdminProductResponse withInventory(
@@ -689,6 +807,17 @@ public class AdminService {
         );
         if (matches == null || matches != 1) {
             throw new ResourceNotFoundException("Categoria não encontrada");
+        }
+    }
+
+    private void ensureProduct(Long productId) {
+        Long matches = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM products WHERE id = ?",
+                Long.class,
+                productId
+        );
+        if (matches == null || matches != 1) {
+            throw new ResourceNotFoundException("Produto não encontrado");
         }
     }
 

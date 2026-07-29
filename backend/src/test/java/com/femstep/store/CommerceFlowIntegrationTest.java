@@ -426,6 +426,45 @@ class CommerceFlowIntegrationTest {
         assertThat(updated.path("name").asText()).isEqualTo("Produto Atualizado");
         assertThat(updated.path("slug").asText()).isEqualTo(updatedSlug);
         assertThat(updated.path("featured").asBoolean()).isTrue();
+
+        JsonNode variant = json(mockMvc.perform(post("/api/admin/products/{productId}/variants", productId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "sku", "NEW-" + suffix,
+                                "size", 37,
+                                "color", "Caramelo",
+                                "stock", 4,
+                                "priceOverride", 229.90
+                        ))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString());
+        long variantId = variant.path("id").asLong();
+        assertThat(variant.path("available").asInt()).isEqualTo(4);
+
+        JsonNode editedVariant = json(mockMvc.perform(
+                        put("/api/admin/variants/{variantId}", variantId)
+                                .header(HttpHeaders.AUTHORIZATION, bearer)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(Map.of(
+                                        "sku", "EDIT-" + suffix,
+                                        "size", 38,
+                                        "color", "Nude",
+                                        "priceOverride", 239.90
+                                ))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(editedVariant.path("size").asInt()).isEqualTo(38);
+
+        JsonNode disabledVariant = json(mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/api/admin/variants/{variantId}/active", variantId)
+                                .header(HttpHeaders.AUTHORIZATION, bearer)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"active\":false}"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(disabledVariant.path("active").asBoolean()).isFalse();
     }
 
     @Test

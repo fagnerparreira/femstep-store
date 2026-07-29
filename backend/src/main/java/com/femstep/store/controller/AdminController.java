@@ -10,6 +10,9 @@ import com.femstep.store.dto.admin.AdminProductDetailsResponse;
 import com.femstep.store.dto.admin.AdminProductRequest;
 import com.femstep.store.dto.admin.AdminProductResponse;
 import com.femstep.store.dto.admin.AdminProductUpdateRequest;
+import com.femstep.store.dto.admin.AdminVariantCreateRequest;
+import com.femstep.store.dto.admin.AdminVariantResponse;
+import com.femstep.store.dto.admin.AdminVariantUpdateRequest;
 import com.femstep.store.service.AdminService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -79,6 +82,34 @@ public class AdminController {
             @PathVariable Long productId,
             @RequestBody ToggleProductRequest request) {
         return adminService.toggleProduct(productId, request.active(), authentication.getName());
+    }
+
+    @PostMapping("/products/{productId}/variants")
+    @ResponseStatus(HttpStatus.CREATED)
+    public AdminVariantResponse createVariant(
+            Authentication authentication,
+            @PathVariable Long productId,
+            @Valid @RequestBody AdminVariantCreateRequest request
+    ) {
+        return adminService.createVariant(productId, request, authentication.getName());
+    }
+
+    @PutMapping("/variants/{variantId}")
+    public AdminVariantResponse updateVariant(
+            Authentication authentication,
+            @PathVariable Long variantId,
+            @Valid @RequestBody AdminVariantUpdateRequest request
+    ) {
+        return adminService.updateVariant(variantId, request, authentication.getName());
+    }
+
+    @PatchMapping("/variants/{variantId}/active")
+    public AdminVariantResponse toggleVariant(
+            Authentication authentication,
+            @PathVariable Long variantId,
+            @RequestBody ToggleProductRequest request
+    ) {
+        return adminService.toggleVariant(variantId, request.active(), authentication.getName());
     }
 
     @PatchMapping("/variants/{variantId}/stock")

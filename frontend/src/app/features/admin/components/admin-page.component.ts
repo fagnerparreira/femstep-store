@@ -9,6 +9,7 @@ import {
   AdminCategory,
   AdminOrder,
   AdminProduct,
+  AdminVariant,
   AdminService
 } from '../../../core/services/admin.service';
 import { Category } from '../../../core/models/product.model';
@@ -36,6 +37,8 @@ export class AdminPageComponent implements OnInit {
   editingCouponId: number | null = null;
   editingCategoryId: number | null = null;
   editingProductId: number | null = null;
+  addingVariantProductId: number | null = null;
+  editingVariantId: number | null = null;
   expandedProductId: number | null = null;
   trackingCodes: Record<string, string> = {};
   isSubmitting = false;
@@ -68,6 +71,21 @@ export class AdminPageComponent implements OnInit {
     featured: [false],
     material: [''],
     brand: ['FemStep']
+  });
+
+  readonly variantCreateForm = this.formBuilder.nonNullable.group({
+    sku: ['', Validators.required],
+    size: [36, [Validators.required, Validators.min(25), Validators.max(50)]],
+    color: ['Preto', Validators.required],
+    stock: [0, [Validators.required, Validators.min(0)]],
+    priceOverride: [0, Validators.min(0)]
+  });
+
+  readonly variantEditForm = this.formBuilder.nonNullable.group({
+    sku: ['', Validators.required],
+    size: [36, [Validators.required, Validators.min(25), Validators.max(50)]],
+    color: ['Preto', Validators.required],
+    priceOverride: [0, Validators.min(0)]
   });
 
   readonly couponForm = this.formBuilder.nonNullable.group({
@@ -364,6 +382,88 @@ export class AdminPageComponent implements OnInit {
     this.productEditForm.reset();
   }
 
+  startVariantCreate(product: AdminProduct): void {
+    this.addingVariantProductId = product.id;
+    this.editingVariantId = null;
+    this.variantCreateForm.reset({
+      sku: `${product.slug.replace(/-/g, '').slice(0, 8).toUpperCase()}-`,
+      size: 36,
+      color: 'Preto',
+      stock: 0,
+      priceOverride: 0
+    });
+  }
+
+  createVariant(product: AdminProduct): void {
+    this.clearMessages();
+    if (this.variantCreateForm.invalid || this.isSubmitting) {
+      this.variantCreateForm.markAllAsTouched();
+      this.errorMessage = 'Revise os dados da nova variação.';
+      return;
+    }
+    const value = this.variantCreateForm.getRawValue();
+    this.isSubmitting = true;
+    this.adminService.createVariant(product.id, {
+      sku: value.sku.trim().toUpperCase(),
+      size: value.size,
+      color: value.color.trim(),
+      stock: value.stock,
+      priceOverride: value.priceOverride || undefined
+    }).subscribe({
+      next: () => {
+        this.message = 'Variação criada.';
+        this.isSubmitting = false;
+        this.addingVariantProductId = null;
+        this.reloadProducts(product.id);
+      },
+      error: error => this.handleError(error)
+    });
+  }
+
+  editVariant(variant: AdminVariant): void {
+    this.addingVariantProductId = null;
+    this.editingVariantId = variant.id;
+    this.variantEditForm.reset({
+      sku: variant.sku,
+      size: variant.size,
+      color: variant.color,
+      priceOverride: variant.priceOverride ?? 0
+    });
+  }
+
+  saveVariant(product: AdminProduct): void {
+    this.clearMessages();
+    if (!this.editingVariantId || this.variantEditForm.invalid || this.isSubmitting) {
+      this.variantEditForm.markAllAsTouched();
+      this.errorMessage = 'Revise os dados da variação.';
+      return;
+    }
+    const value = this.variantEditForm.getRawValue();
+    this.isSubmitting = true;
+    this.adminService.updateVariant(this.editingVariantId, {
+      sku: value.sku.trim().toUpperCase(),
+      size: value.size,
+      color: value.color.trim(),
+      priceOverride: value.priceOverride || undefined
+    }).subscribe({
+      next: () => {
+        this.message = 'Variação atualizada.';
+        this.isSubmitting = false;
+        this.editingVariantId = null;
+        this.reloadProducts(product.id);
+      },
+      error: error => this.handleError(error)
+    });
+  }
+
+  toggleVariant(product: AdminProduct, variant: AdminVariant): void {
+    this.clearMessages();
+    this.adminService.toggleVariant(variant.id, !variant.active).subscribe({
+      next: () => this.reloadProducts(product.id),
+      error: error => this.handleError(error)
+    });
+  }
+
   toggleProduct(product: AdminProduct): void {
     this.adminService.toggleProduct(product.id, !product.active).subscribe({
       next: updated => {
@@ -378,10 +478,7 @@ export class AdminPageComponent implements OnInit {
     this.adminService.adjustStock(variantId, stock, 'Ajuste pelo painel').subscribe({
       next: () => {
         this.message = 'Estoque atualizado.';
-        this.adminService.products().subscribe(products => {
-          this.products = products;
-          this.expandedProductId = product.id;
-        });
+        this.reloadProducts(product.id);
       },
       error: error => this.handleError(error)
     });
@@ -452,6 +549,13 @@ export class AdminPageComponent implements OnInit {
 
   private reloadPublicCategories(): void {
     this.productService.refreshCategories().subscribe(categories => this.categories = categories);
+  }
+
+  private reloadProducts(expandedProductId: number): void {
+    this.adminService.products().subscribe(products => {
+      this.products = products;
+      this.expandedProductId = expandedProductId;
+    });
   }
 
   private slug(value: string): string {

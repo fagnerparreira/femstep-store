@@ -16,10 +16,18 @@ export interface AdminVariant {
   sku: string;
   size: number;
   color: string;
+  priceOverride?: number;
   stock: number;
   reserved: number;
   available: number;
   active: boolean;
+}
+
+export interface AdminVariantRequest {
+  sku: string;
+  size: number;
+  color: string;
+  priceOverride?: number;
 }
 
 export interface AdminProduct {
@@ -139,6 +147,30 @@ export class AdminService {
   toggleProduct(productId: number, active: boolean): Observable<AdminProduct> {
     return this.http.patch<AdminProduct>(
       `${this.apiUrl}/products/${productId}/active`,
+      { active }
+    );
+  }
+
+  createVariant(
+    productId: number,
+    request: AdminVariantRequest & { stock: number }
+  ): Observable<AdminVariant> {
+    return this.http.post<AdminVariant>(
+      `${this.apiUrl}/products/${productId}/variants`,
+      request
+    );
+  }
+
+  updateVariant(
+    variantId: number,
+    request: AdminVariantRequest
+  ): Observable<AdminVariant> {
+    return this.http.put<AdminVariant>(`${this.apiUrl}/variants/${variantId}`, request);
+  }
+
+  toggleVariant(variantId: number, active: boolean): Observable<AdminVariant> {
+    return this.http.patch<AdminVariant>(
+      `${this.apiUrl}/variants/${variantId}/active`,
       { active }
     );
   }
