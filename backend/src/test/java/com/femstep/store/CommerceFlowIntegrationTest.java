@@ -267,6 +267,43 @@ class CommerceFlowIntegrationTest {
     }
 
     @Test
+    void administratorCanCreateAndDeactivateACoupon() throws Exception {
+        String bearer = registerAdminBearer(uniqueEmail("coupon-admin"));
+        String code = "TESTE" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        String request = objectMapper.writeValueAsString(Map.of(
+                "code", code,
+                "description", "Cupom de integração",
+                "discountType", "PERCENTAGE",
+                "discountValue", 10,
+                "minimumOrderValue", 100,
+                "usageLimit", 20,
+                "usageLimitPerUser", 1,
+                "startsAt", java.time.LocalDateTime.now().minusMinutes(1).toString(),
+                "endsAt", java.time.LocalDateTime.now().plusDays(2).toString(),
+                "active", true
+        ));
+
+        JsonNode created = json(mockMvc.perform(post("/api/admin/coupons")
+                        .header(HttpHeaders.AUTHORIZATION, bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString());
+        long couponId = created.path("id").asLong();
+        assertThat(created.path("code").asText()).isEqualTo(code.toUpperCase());
+
+        JsonNode disabled = json(mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/api/admin/coupons/{couponId}/active", couponId)
+                                .header(HttpHeaders.AUTHORIZATION, bearer)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"active\":false}"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(disabled.path("active").asBoolean()).isFalse();
+    }
+
+    @Test
     void concurrentCheckoutsCannotSellTheLastUnitTwice() throws Exception {
         long variantId = variantId("tenis-nuvem");
         String firstBearer = registerBearer(uniqueEmail("stock-a"));
@@ -334,6 +371,25 @@ class CommerceFlowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(registerBody(email)))
                 .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString());
+        return "Bearer " + auth.path("token").asText();
+    }
+
+    private String registerAdminBearer(String email) throws Exception {
+        registerBearer(email);
+        jdbcTemplate.update("""
+                INSERT INTO user_roles (user_id, role_id)
+                SELECT u.id, r.id FROM users u CROSS JOIN roles r
+                WHERE u.email = ? AND r.name = 'ROLE_ADMIN'
+                ON CONFLICT DO NOTHING
+                """, email);
+        JsonNode auth = json(mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "email", email,
+                                "password", "TesteSeguro123!"
+                        ))))
+                .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString());
         return "Bearer " + auth.path("token").asText();
     }

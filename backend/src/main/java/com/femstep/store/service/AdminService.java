@@ -1,6 +1,8 @@
 package com.femstep.store.service;
 
 import com.femstep.store.dto.admin.AdminDashboardResponse;
+import com.femstep.store.dto.admin.AdminCouponRequest;
+import com.femstep.store.dto.admin.AdminCouponResponse;
 import com.femstep.store.dto.admin.AdminOrderResponse;
 import com.femstep.store.dto.admin.AdminProductRequest;
 import com.femstep.store.dto.admin.AdminProductResponse;
@@ -263,6 +265,134 @@ public class AdminService {
         }
         audit(adminEmail, "ADVANCE_ORDER", "ORDER", order.id(), targetStatus);
         return order(orderNumber);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminCouponResponse> coupons() {
+        return jdbcTemplate.query("""
+                        SELECT c.*, count(cr.id) AS uses
+                        FROM coupons c
+                        LEFT JOIN coupon_redemptions cr ON cr.coupon_id = c.id
+                        GROUP BY c.id
+                        ORDER BY c.created_at DESC, c.id DESC
+                        """,
+                (rs, rowNum) -> new AdminCouponResponse(
+                        rs.getLong("id"),
+                        rs.getString("code"),
+                        rs.getString("description"),
+                        rs.getString("discount_type"),
+                        rs.getBigDecimal("discount_value"),
+                        rs.getBigDecimal("minimum_order_value"),
+                        rs.getBigDecimal("maximum_discount_value"),
+                        (Integer) rs.getObject("usage_limit"),
+                        rs.getInt("usage_limit_per_user"),
+                        rs.getLong("uses"),
+                        rs.getTimestamp("starts_at").toLocalDateTime(),
+                        rs.getTimestamp("ends_at").toLocalDateTime(),
+                        rs.getBoolean("active")
+                ));
+    }
+
+    @Transactional
+    public AdminCouponResponse createCoupon(AdminCouponRequest request, String adminEmail) {
+        validateCoupon(request);
+        try {
+            Long couponId = jdbcTemplate.queryForObject("""
+                    INSERT INTO coupons (
+                        code, description, discount_type, discount_value,
+                        minimum_order_value, maximum_discount_value,
+                        usage_limit, usage_limit_per_user, starts_at, ends_at, active
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    RETURNING id
+                    """,
+                    Long.class,
+                    request.code().trim().toUpperCase(),
+                    blankToNull(request.description()),
+                    request.discountType(),
+                    request.discountValue(),
+                    request.minimumOrderValue(),
+                    request.maximumDiscountValue(),
+                    request.usageLimit(),
+                    request.usageLimitPerUser(),
+                    request.startsAt(),
+                    request.endsAt(),
+                    request.active()
+            );
+            audit(adminEmail, "CREATE_COUPON", "COUPON", couponId, request.code());
+            return coupon(couponId);
+        } catch (DuplicateKeyException exception) {
+            throw new ConflictException("Já existe um cupom com este código");
+        }
+    }
+
+    @Transactional
+    public AdminCouponResponse updateCoupon(
+            Long couponId,
+            AdminCouponRequest request,
+            String adminEmail
+    ) {
+        validateCoupon(request);
+        try {
+            int updated = jdbcTemplate.update("""
+                    UPDATE coupons
+                    SET code = ?, description = ?, discount_type = ?, discount_value = ?,
+                        minimum_order_value = ?, maximum_discount_value = ?,
+                        usage_limit = ?, usage_limit_per_user = ?, starts_at = ?,
+                        ends_at = ?, active = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                    """,
+                    request.code().trim().toUpperCase(),
+                    blankToNull(request.description()),
+                    request.discountType(),
+                    request.discountValue(),
+                    request.minimumOrderValue(),
+                    request.maximumDiscountValue(),
+                    request.usageLimit(),
+                    request.usageLimitPerUser(),
+                    request.startsAt(),
+                    request.endsAt(),
+                    request.active(),
+                    couponId
+            );
+            if (updated != 1) {
+                throw new ResourceNotFoundException("Cupom não encontrado");
+            }
+            audit(adminEmail, "UPDATE_COUPON", "COUPON", couponId, request.code());
+            return coupon(couponId);
+        } catch (DuplicateKeyException exception) {
+            throw new ConflictException("Já existe um cupom com este código");
+        }
+    }
+
+    @Transactional
+    public AdminCouponResponse toggleCoupon(Long couponId, boolean active, String adminEmail) {
+        int updated = jdbcTemplate.update(
+                "UPDATE coupons SET active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                active,
+                couponId
+        );
+        if (updated != 1) {
+            throw new ResourceNotFoundException("Cupom não encontrado");
+        }
+        audit(adminEmail, active ? "ACTIVATE_COUPON" : "DEACTIVATE_COUPON", "COUPON", couponId, null);
+        return coupon(couponId);
+    }
+
+    private AdminCouponResponse coupon(Long couponId) {
+        return coupons().stream()
+                .filter(item -> item.id().equals(couponId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Cupom não encontrado"));
+    }
+
+    private void validateCoupon(AdminCouponRequest request) {
+        if (!request.endsAt().isAfter(request.startsAt())) {
+            throw new BusinessRuleException("O término do cupom deve ser posterior ao início");
+        }
+        if ("PERCENTAGE".equals(request.discountType())
+                && request.discountValue().compareTo(BigDecimal.valueOf(100)) > 0) {
+            throw new BusinessRuleException("O desconto percentual não pode ser maior que 100%");
+        }
     }
 
     private AdminProductResponse product(Long productId) {

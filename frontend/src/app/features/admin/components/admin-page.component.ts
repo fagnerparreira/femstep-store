@@ -5,6 +5,7 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { RouterLink } from '@angular/router';
 import {
   AdminDashboard,
+  AdminCoupon,
   AdminOrder,
   AdminProduct,
   AdminService
@@ -28,7 +29,9 @@ export class AdminPageComponent implements OnInit {
   products: AdminProduct[] = [];
   orders: AdminOrder[] = [];
   categories: Category[] = [];
-  activeSection: 'overview' | 'products' | 'orders' = 'overview';
+  coupons: AdminCoupon[] = [];
+  activeSection: 'overview' | 'products' | 'orders' | 'coupons' = 'overview';
+  editingCouponId: number | null = null;
   expandedProductId: number | null = null;
   trackingCodes: Record<string, string> = {};
   isSubmitting = false;
@@ -51,6 +54,20 @@ export class AdminPageComponent implements OnInit {
     stock: [5, [Validators.required, Validators.min(0)]]
   });
 
+  readonly couponForm = this.formBuilder.nonNullable.group({
+    code: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9_-]+$/)]],
+    description: [''],
+    discountType: ['PERCENTAGE' as 'PERCENTAGE' | 'FIXED', Validators.required],
+    discountValue: [10, [Validators.required, Validators.min(0.01)]],
+    minimumOrderValue: [0, [Validators.required, Validators.min(0)]],
+    maximumDiscountValue: [0, Validators.min(0)],
+    usageLimit: [0, Validators.min(0)],
+    usageLimitPerUser: [1, [Validators.required, Validators.min(1)]],
+    startsAt: [this.dateInput(new Date()), Validators.required],
+    endsAt: [this.dateInput(new Date(Date.now() + 30 * 86_400_000)), Validators.required],
+    active: [true]
+  });
+
   ngOnInit(): void {
     this.reload();
     this.productService.getCategories().subscribe(categories => {
@@ -65,11 +82,79 @@ export class AdminPageComponent implements OnInit {
     this.adminService.dashboard().subscribe(value => this.dashboard = value);
     this.adminService.products().subscribe(value => this.products = value);
     this.adminService.orders().subscribe(value => this.orders = value);
+    this.adminService.coupons().subscribe(value => this.coupons = value);
   }
 
-  setSection(section: 'overview' | 'products' | 'orders'): void {
+  setSection(section: 'overview' | 'products' | 'orders' | 'coupons'): void {
     this.activeSection = section;
     this.clearMessages();
+  }
+
+  saveCoupon(): void {
+    this.clearMessages();
+    if (this.couponForm.invalid || this.isSubmitting) {
+      this.couponForm.markAllAsTouched();
+      this.errorMessage = 'Revise os dados do cupom.';
+      return;
+    }
+    const value = this.couponForm.getRawValue();
+    if (value.endsAt <= value.startsAt) {
+      this.errorMessage = 'O término precisa ser posterior ao início.';
+      return;
+    }
+    this.isSubmitting = true;
+    const request = {
+      code: value.code.trim().toUpperCase(),
+      description: value.description.trim() || undefined,
+      discountType: value.discountType,
+      discountValue: value.discountValue,
+      minimumOrderValue: value.minimumOrderValue,
+      maximumDiscountValue: value.maximumDiscountValue || undefined,
+      usageLimit: value.usageLimit || undefined,
+      usageLimitPerUser: value.usageLimitPerUser,
+      startsAt: value.startsAt,
+      endsAt: value.endsAt,
+      active: value.active
+    };
+    const operation = this.editingCouponId
+      ? this.adminService.updateCoupon(this.editingCouponId, request)
+      : this.adminService.createCoupon(request);
+    operation.subscribe({
+      next: () => {
+        this.message = this.editingCouponId ? 'Cupom atualizado.' : 'Cupom criado.';
+        this.isSubmitting = false;
+        this.editingCouponId = null;
+        this.resetCouponForm();
+        this.adminService.coupons().subscribe(coupons => this.coupons = coupons);
+      },
+      error: error => this.handleError(error)
+    });
+  }
+
+  editCoupon(coupon: AdminCoupon): void {
+    this.editingCouponId = coupon.id;
+    this.couponForm.reset({
+      code: coupon.code,
+      description: coupon.description ?? '',
+      discountType: coupon.discountType,
+      discountValue: coupon.discountValue,
+      minimumOrderValue: coupon.minimumOrderValue,
+      maximumDiscountValue: coupon.maximumDiscountValue ?? 0,
+      usageLimit: coupon.usageLimit ?? 0,
+      usageLimitPerUser: coupon.usageLimitPerUser,
+      startsAt: coupon.startsAt.slice(0, 16),
+      endsAt: coupon.endsAt.slice(0, 16),
+      active: coupon.active
+    });
+  }
+
+  toggleCoupon(coupon: AdminCoupon): void {
+    this.adminService.toggleCoupon(coupon.id, !coupon.active).subscribe({
+      next: updated => this.coupons = this.coupons.map(item =>
+        item.id === updated.id ? updated : item
+      ),
+      error: error => this.handleError(error)
+    });
   }
 
   generateSlug(): void {
@@ -203,5 +288,24 @@ export class AdminPageComponent implements OnInit {
   private handleError(error: HttpErrorResponse): void {
     this.errorMessage = error.error?.message ?? 'Não foi possível concluir a operação.';
     this.isSubmitting = false;
+  }
+
+  private resetCouponForm(): void {
+    this.couponForm.reset({
+      discountType: 'PERCENTAGE',
+      discountValue: 10,
+      minimumOrderValue: 0,
+      maximumDiscountValue: 0,
+      usageLimit: 0,
+      usageLimitPerUser: 1,
+      startsAt: this.dateInput(new Date()),
+      endsAt: this.dateInput(new Date(Date.now() + 30 * 86_400_000)),
+      active: true
+    });
+  }
+
+  private dateInput(date: Date): string {
+    const offset = date.getTimezoneOffset() * 60_000;
+    return new Date(date.getTime() - offset).toISOString().slice(0, 16);
   }
 }

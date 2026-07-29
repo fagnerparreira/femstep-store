@@ -9,6 +9,7 @@
       <button [class.active]="activeSection === 'overview'" (click)="setSection('overview')">Visão geral</button>
       <button [class.active]="activeSection === 'products'" (click)="setSection('products')">Produtos</button>
       <button [class.active]="activeSection === 'orders'" (click)="setSection('orders')">Pedidos</button>
+      <button [class.active]="activeSection === 'coupons'" (click)="setSection('coupons')">Cupons</button>
     </nav>
 
     <p class="success" *ngIf="message">{{ message }}</p>
@@ -76,6 +77,42 @@
         <input *ngIf="order.status === 'PROCESSING'" [(ngModel)]="trackingCodes[order.orderNumber]" [ngModelOptions]="{standalone: true}" placeholder="Código de rastreio">
         <button *ngIf="nextStatus(order.status)" type="button" (click)="advance(order)">{{ actionLabel(order.status) }}</button>
       </article>
+    </section>
+
+    <section class="products-section" *ngIf="activeSection === 'coupons'">
+      <form class="product-form" [formGroup]="couponForm" (ngSubmit)="saveCoupon()">
+        <div class="section-title"><div><span class="eyebrow">Promoções</span><h2>{{ editingCouponId ? 'Editar cupom' : 'Novo cupom' }}</h2></div></div>
+        <div class="form-grid">
+          <label>Código<input formControlName="code"></label>
+          <label>Tipo<select formControlName="discountType"><option value="PERCENTAGE">Percentual</option><option value="FIXED">Valor fixo</option></select></label>
+          <label>Desconto<input formControlName="discountValue" type="number" min="0.01" step="0.01"></label>
+          <label>Pedido mínimo<input formControlName="minimumOrderValue" type="number" min="0" step="0.01"></label>
+          <label>Desconto máximo<input formControlName="maximumDiscountValue" type="number" min="0" step="0.01"></label>
+          <label>Limite total<input formControlName="usageLimit" type="number" min="0"></label>
+          <label>Limite por cliente<input formControlName="usageLimitPerUser" type="number" min="1"></label>
+          <label>Início<input formControlName="startsAt" type="datetime-local"></label>
+          <label>Término<input formControlName="endsAt" type="datetime-local"></label>
+          <label class="wide">Descrição<input formControlName="description"></label>
+          <label class="checkbox"><input formControlName="active" type="checkbox">Cupom ativo</label>
+        </div>
+        <button class="primary" type="submit" [disabled]="isSubmitting">{{ isSubmitting ? 'Salvando...' : (editingCouponId ? 'Atualizar cupom' : 'Criar cupom') }}</button>
+      </form>
+
+      <div class="catalog-table">
+        <div class="section-title"><div><span class="eyebrow">Cupons</span><h2>Promoções cadastradas</h2></div><strong>{{ coupons.length }} itens</strong></div>
+        <article class="product-row" *ngFor="let coupon of coupons">
+          <div class="product-main">
+            <span><strong>{{ coupon.code }}</strong><small>{{ coupon.description || 'Sem descrição' }}</small></span>
+            <span>{{ coupon.discountType === 'PERCENTAGE' ? coupon.discountValue + '%' : (coupon.discountValue | currency:'BRL':'symbol':'1.2-2':'pt-BR') }}</span>
+            <span>{{ coupon.uses }} uso(s)</span>
+            <span class="badge" [class.inactive]="!coupon.active">{{ coupon.active ? 'Ativo' : 'Inativo' }}</span>
+            <span>
+              <button type="button" (click)="editCoupon(coupon)">Editar</button>
+              <button type="button" (click)="toggleCoupon(coupon)">{{ coupon.active ? 'Desativar' : 'Ativar' }}</button>
+            </span>
+          </div>
+        </article>
+      </div>
     </section>
   </div>
 </main>

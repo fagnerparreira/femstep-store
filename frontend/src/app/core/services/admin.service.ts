@@ -60,6 +60,24 @@ export interface AdminProductRequest {
   variants: Array<{ sku: string; size: number; color: string; stock: number }>;
 }
 
+export interface AdminCoupon {
+  id: number;
+  code: string;
+  description?: string;
+  discountType: 'PERCENTAGE' | 'FIXED';
+  discountValue: number;
+  minimumOrderValue: number;
+  maximumDiscountValue?: number;
+  usageLimit?: number;
+  usageLimitPerUser: number;
+  uses: number;
+  startsAt: string;
+  endsAt: string;
+  active: boolean;
+}
+
+export type AdminCouponRequest = Omit<AdminCoupon, 'id' | 'uses'>;
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly http = inject(HttpClient);
@@ -103,6 +121,25 @@ export class AdminService {
     return this.http.patch<AdminOrder>(
       `${this.apiUrl}/orders/${orderNumber}/status`,
       { status, trackingCode }
+    );
+  }
+
+  coupons(): Observable<AdminCoupon[]> {
+    return this.http.get<AdminCoupon[]>(`${this.apiUrl}/coupons`);
+  }
+
+  createCoupon(request: AdminCouponRequest): Observable<AdminCoupon> {
+    return this.http.post<AdminCoupon>(`${this.apiUrl}/coupons`, request);
+  }
+
+  updateCoupon(couponId: number, request: AdminCouponRequest): Observable<AdminCoupon> {
+    return this.http.put<AdminCoupon>(`${this.apiUrl}/coupons/${couponId}`, request);
+  }
+
+  toggleCoupon(couponId: number, active: boolean): Observable<AdminCoupon> {
+    return this.http.patch<AdminCoupon>(
+      `${this.apiUrl}/coupons/${couponId}/active`,
+      { active }
     );
   }
 }

@@ -1,6 +1,8 @@
 package com.femstep.store.controller;
 
 import com.femstep.store.dto.admin.AdminDashboardResponse;
+import com.femstep.store.dto.admin.AdminCouponRequest;
+import com.femstep.store.dto.admin.AdminCouponResponse;
 import com.femstep.store.dto.admin.AdminOrderResponse;
 import com.femstep.store.dto.admin.AdminProductRequest;
 import com.femstep.store.dto.admin.AdminProductResponse;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -90,6 +93,38 @@ public class AdminController {
                 request.trackingCode(),
                 authentication.getName()
         );
+    }
+
+    @GetMapping("/coupons")
+    public List<AdminCouponResponse> coupons() {
+        return adminService.coupons();
+    }
+
+    @PostMapping("/coupons")
+    @ResponseStatus(HttpStatus.CREATED)
+    public AdminCouponResponse createCoupon(
+            Authentication authentication,
+            @Valid @RequestBody AdminCouponRequest request
+    ) {
+        return adminService.createCoupon(request, authentication.getName());
+    }
+
+    @PutMapping("/coupons/{couponId}")
+    public AdminCouponResponse updateCoupon(
+            Authentication authentication,
+            @PathVariable Long couponId,
+            @Valid @RequestBody AdminCouponRequest request
+    ) {
+        return adminService.updateCoupon(couponId, request, authentication.getName());
+    }
+
+    @PatchMapping("/coupons/{couponId}/active")
+    public AdminCouponResponse toggleCoupon(
+            Authentication authentication,
+            @PathVariable Long couponId,
+            @RequestBody ToggleProductRequest request
+    ) {
+        return adminService.toggleCoupon(couponId, request.active(), authentication.getName());
     }
 
     public record ToggleProductRequest(boolean active) {
