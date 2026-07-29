@@ -60,6 +60,7 @@ class CommerceFlowIntegrationTest {
         registry.add("payments.sandbox-enabled", () -> true);
         registry.add("security.cors.allowed-origins", () -> "http://localhost:4200");
         registry.add("spring.jpa.show-sql", () -> false);
+        registry.add("security.rate-limit.enabled", () -> false);
     }
 
     @Autowired

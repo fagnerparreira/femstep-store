@@ -43,6 +43,8 @@ spring:
     test-connection: false
     
 security:
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
   cookies:
     secure: ${COOKIE_SECURE:true}
   cors:
