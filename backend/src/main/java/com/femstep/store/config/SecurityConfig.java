@@ -62,7 +62,7 @@ public class SecurityConfig {
                         "/api/auth/refresh",
                         "/api/auth/logout"
                 ).permitAll()
-                .requestMatchers("/api/health", "/actuator/health").permitAll()
+                .requestMatchers("/api/health", "/actuator/health", "/actuator/health/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 // Admin endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -97,7 +97,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization", "Content-Type", "Accept", RequestIdFilter.HEADER
+        ));
+        configuration.setExposedHeaders(List.of(RequestIdFilter.HEADER));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

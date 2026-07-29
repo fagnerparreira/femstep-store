@@ -150,6 +150,8 @@ mas não movimenta dinheiro real.
 
 O planejamento técnico completo está em
 [`docs/PLANO_IMPLEMENTACAO_ECOMMERCE.md`](docs/PLANO_IMPLEMENTACAO_ECOMMERCE.md).
+O checklist de publicação, backup e monitoramento está em
+[`docs/OPERACAO.md`](docs/OPERACAO.md).
 
 ## Licença
 

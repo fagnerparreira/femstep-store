@@ -23,19 +23,4 @@ public class HealthController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/public/test")
-    public ResponseEntity<Map<String, String>> publicTest() {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "This is a public endpoint");
-        response.put("access", "unauthorized");
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/protected/test")
-    public ResponseEntity<Map<String, String>> protectedTest() {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "This is a protected endpoint");
-        response.put("access", "authenticated");
-        return ResponseEntity.ok(response);
-    }
 }

@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -151,6 +152,13 @@ class CommerceFlowIntegrationTest {
                 .andReturn().getResponse().getContentAsString());
 
         assertThat(error.path("message").asText()).contains("e-mail");
+    }
+
+    @Test
+    void apiPropagatesAValidRequestId() throws Exception {
+        mockMvc.perform(get("/api/health").header("X-Request-Id", "integration-request-1"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Request-Id", "integration-request-1"));
     }
 
     @Test
