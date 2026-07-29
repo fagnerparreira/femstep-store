@@ -7,6 +7,8 @@ import com.femstep.store.dto.admin.AdminCategoryRequest;
 import com.femstep.store.dto.admin.AdminCategoryResponse;
 import com.femstep.store.dto.admin.AdminOrderResponse;
 import com.femstep.store.dto.admin.AdminProductDetailsResponse;
+import com.femstep.store.dto.admin.AdminProductImageRequest;
+import com.femstep.store.dto.admin.AdminProductImageResponse;
 import com.femstep.store.dto.admin.AdminProductRequest;
 import com.femstep.store.dto.admin.AdminProductResponse;
 import com.femstep.store.dto.admin.AdminProductUpdateRequest;
@@ -214,6 +216,106 @@ public class AdminService {
         }
         audit(adminEmail, active ? "ACTIVATE_PRODUCT" : "DEACTIVATE_PRODUCT", "PRODUCT", productId, null);
         return product(productId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminProductImageResponse> productImages(Long productId) {
+        ensureProduct(productId);
+        return jdbcTemplate.query("""
+                        SELECT id, url, alt_text, display_order, main_image
+                        FROM product_images
+                        WHERE product_id = ?
+                        ORDER BY main_image DESC, display_order, id
+                        """,
+                (rs, rowNum) -> new AdminProductImageResponse(
+                        rs.getLong("id"),
+                        rs.getString("url"),
+                        rs.getString("alt_text"),
+                        rs.getInt("display_order"),
+                        rs.getBoolean("main_image")
+                ),
+                productId
+        );
+    }
+
+    @Transactional
+    public AdminProductImageResponse createProductImage(
+            Long productId,
+            AdminProductImageRequest request,
+            String adminEmail
+    ) {
+        ensureProduct(productId);
+        boolean makeMain = request.mainImage() || countProductImages(productId) == 0;
+        if (makeMain) {
+            clearMainImage(productId);
+        }
+        Long imageId = jdbcTemplate.queryForObject("""
+                INSERT INTO product_images (
+                    url, alt_text, display_order, main_image, product_id
+                ) VALUES (?, ?, ?, ?, ?)
+                RETURNING id
+                """,
+                Long.class,
+                request.url().trim(),
+                request.altText().trim(),
+                request.displayOrder(),
+                makeMain,
+                productId
+        );
+        audit(adminEmail, "CREATE_PRODUCT_IMAGE", "PRODUCT_IMAGE", imageId, request.url());
+        return productImage(imageId);
+    }
+
+    @Transactional
+    public AdminProductImageResponse updateProductImage(
+            Long imageId,
+            AdminProductImageRequest request,
+            String adminEmail
+    ) {
+        ImageState current = imageState(imageId);
+        if (request.mainImage()) {
+            clearMainImage(current.productId());
+        } else if (current.mainImage()) {
+            throw new BusinessRuleException(
+                    "Defina outra imagem como principal antes de remover esta seleção"
+            );
+        }
+        jdbcTemplate.update("""
+                UPDATE product_images
+                SET url = ?, alt_text = ?, display_order = ?, main_image = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """,
+                request.url().trim(),
+                request.altText().trim(),
+                request.displayOrder(),
+                request.mainImage(),
+                imageId
+        );
+        audit(adminEmail, "UPDATE_PRODUCT_IMAGE", "PRODUCT_IMAGE", imageId, request.url());
+        return productImage(imageId);
+    }
+
+    @Transactional
+    public void deleteProductImage(Long imageId, String adminEmail) {
+        ImageState current = imageState(imageId);
+        if (countProductImages(current.productId()) <= 1) {
+            throw new BusinessRuleException("O produto precisa manter ao menos uma imagem");
+        }
+        jdbcTemplate.update("DELETE FROM product_images WHERE id = ?", imageId);
+        if (current.mainImage()) {
+            jdbcTemplate.update("""
+                    UPDATE product_images
+                    SET main_image = true, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = (
+                        SELECT id FROM product_images
+                        WHERE product_id = ?
+                        ORDER BY display_order, id
+                        LIMIT 1
+                    )
+                    """, current.productId());
+        }
+        audit(adminEmail, "DELETE_PRODUCT_IMAGE", "PRODUCT_IMAGE", imageId, null);
     }
 
     @Transactional
@@ -761,6 +863,56 @@ public class AdminService {
                 .orElseThrow(() -> new ResourceNotFoundException("Variação não encontrada"));
     }
 
+    private AdminProductImageResponse productImage(Long imageId) {
+        return jdbcTemplate.query("""
+                        SELECT id, url, alt_text, display_order, main_image
+                        FROM product_images
+                        WHERE id = ?
+                        """,
+                (rs, rowNum) -> new AdminProductImageResponse(
+                        rs.getLong("id"),
+                        rs.getString("url"),
+                        rs.getString("alt_text"),
+                        rs.getInt("display_order"),
+                        rs.getBoolean("main_image")
+                ),
+                imageId
+        ).stream().findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Imagem não encontrada"));
+    }
+
+    private ImageState imageState(Long imageId) {
+        return jdbcTemplate.query("""
+                        SELECT product_id, main_image
+                        FROM product_images
+                        WHERE id = ?
+                        FOR UPDATE
+                        """,
+                (rs, rowNum) -> new ImageState(
+                        rs.getLong("product_id"),
+                        rs.getBoolean("main_image")
+                ),
+                imageId
+        ).stream().findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Imagem não encontrada"));
+    }
+
+    private long countProductImages(Long productId) {
+        Long result = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM product_images WHERE product_id = ?",
+                Long.class,
+                productId
+        );
+        return result == null ? 0 : result;
+    }
+
+    private void clearMainImage(Long productId) {
+        jdbcTemplate.update(
+                "UPDATE product_images SET main_image = false, updated_at = CURRENT_TIMESTAMP WHERE product_id = ?",
+                productId
+        );
+    }
+
     private AdminProductResponse withInventory(
             AdminProductResponse product,
             List<AdminVariantResponse> inventory) {
@@ -865,5 +1017,8 @@ public class AdminService {
     }
 
     private record OrderState(Long id, String status, String shippingService, int estimatedDays) {
+    }
+
+    private record ImageState(Long productId, boolean mainImage) {
     }
 }

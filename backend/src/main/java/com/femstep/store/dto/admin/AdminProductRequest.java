@@ -23,7 +23,8 @@ public record AdminProductRequest(
         boolean featured,
         @Size(max = 120) String material,
         @Size(max = 120) String brand,
-        @NotBlank @Size(max = 500) String imageUrl,
+        @NotBlank @Size(max = 500)
+        @Pattern(regexp = "^(https://\\S+|/assets/\\S+)$") String imageUrl,
         @NotEmpty List<@Valid VariantRequest> variants
 ) {
     public record VariantRequest(

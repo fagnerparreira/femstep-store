@@ -7,6 +7,8 @@ import com.femstep.store.dto.admin.AdminCategoryRequest;
 import com.femstep.store.dto.admin.AdminCategoryResponse;
 import com.femstep.store.dto.admin.AdminOrderResponse;
 import com.femstep.store.dto.admin.AdminProductDetailsResponse;
+import com.femstep.store.dto.admin.AdminProductImageRequest;
+import com.femstep.store.dto.admin.AdminProductImageResponse;
 import com.femstep.store.dto.admin.AdminProductRequest;
 import com.femstep.store.dto.admin.AdminProductResponse;
 import com.femstep.store.dto.admin.AdminProductUpdateRequest;
@@ -22,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -82,6 +85,39 @@ public class AdminController {
             @PathVariable Long productId,
             @RequestBody ToggleProductRequest request) {
         return adminService.toggleProduct(productId, request.active(), authentication.getName());
+    }
+
+    @GetMapping("/products/{productId}/images")
+    public List<AdminProductImageResponse> productImages(@PathVariable Long productId) {
+        return adminService.productImages(productId);
+    }
+
+    @PostMapping("/products/{productId}/images")
+    @ResponseStatus(HttpStatus.CREATED)
+    public AdminProductImageResponse createProductImage(
+            Authentication authentication,
+            @PathVariable Long productId,
+            @Valid @RequestBody AdminProductImageRequest request
+    ) {
+        return adminService.createProductImage(productId, request, authentication.getName());
+    }
+
+    @PutMapping("/images/{imageId}")
+    public AdminProductImageResponse updateProductImage(
+            Authentication authentication,
+            @PathVariable Long imageId,
+            @Valid @RequestBody AdminProductImageRequest request
+    ) {
+        return adminService.updateProductImage(imageId, request, authentication.getName());
+    }
+
+    @DeleteMapping("/images/{imageId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProductImage(
+            Authentication authentication,
+            @PathVariable Long imageId
+    ) {
+        adminService.deleteProductImage(imageId, authentication.getName());
     }
 
     @PostMapping("/products/{productId}/variants")

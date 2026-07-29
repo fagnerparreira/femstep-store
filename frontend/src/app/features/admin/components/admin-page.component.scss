@@ -35,6 +35,11 @@ input, select, textarea { width: 100%; border: 1px solid #d7cec6; border-radius:
 .variant-actions { display: flex; flex-wrap: wrap; gap: 7px; }
 .variant-edit { grid-column: 1 / -1; display: grid; grid-template-columns: 1.4fr repeat(3, 1fr) auto auto; gap: 10px; align-items: end; padding: 12px; background: #fff; border-radius: 8px; }
 .variant-edit label { display: grid; gap: 4px; font-size: 11px; }
+.image-manager { margin: 8px 0 18px; padding: 16px; border: 1px solid #ded5ce; border-radius: 10px; background: #f1eeea; }
+.image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.image-grid article { display: grid; gap: 8px; padding: 10px; background: #fff; border-radius: 8px; }
+.image-grid img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; }
+.image-grid span { display: grid; gap: 3px; }
 .variant label { display: grid; gap: 4px; font-size: 11px; }
 .variant input { padding: 8px; }
 .text-button { border: 0; background: transparent; color: #a12622; margin-top: 16px; cursor: pointer; text-decoration: underline; }

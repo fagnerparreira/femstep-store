@@ -9,6 +9,7 @@ import {
   AdminCategory,
   AdminOrder,
   AdminProduct,
+  AdminProductImage,
   AdminVariant,
   AdminService
 } from '../../../core/services/admin.service';
@@ -39,6 +40,10 @@ export class AdminPageComponent implements OnInit {
   editingProductId: number | null = null;
   addingVariantProductId: number | null = null;
   editingVariantId: number | null = null;
+  managingImagesProductId: number | null = null;
+  editingImageId: number | null = null;
+  editingImageIsMain = false;
+  productImages: AdminProductImage[] = [];
   expandedProductId: number | null = null;
   trackingCodes: Record<string, string> = {};
   isSubmitting = false;
@@ -86,6 +91,13 @@ export class AdminPageComponent implements OnInit {
     size: [36, [Validators.required, Validators.min(25), Validators.max(50)]],
     color: ['Preto', Validators.required],
     priceOverride: [0, Validators.min(0)]
+  });
+
+  readonly imageForm = this.formBuilder.nonNullable.group({
+    url: ['', [Validators.required, Validators.pattern(/^(https:\/\/\S+|\/assets\/\S+)$/)]],
+    altText: ['', Validators.required],
+    displayOrder: [0, [Validators.required, Validators.min(0)]],
+    mainImage: [false]
   });
 
   readonly couponForm = this.formBuilder.nonNullable.group({
@@ -464,6 +476,73 @@ export class AdminPageComponent implements OnInit {
     });
   }
 
+  manageImages(product: AdminProduct): void {
+    this.clearMessages();
+    this.managingImagesProductId = product.id;
+    this.editingImageId = null;
+    this.resetImageForm();
+    this.loadImages(product.id);
+  }
+
+  editImage(image: AdminProductImage): void {
+    this.editingImageId = image.id;
+    this.editingImageIsMain = image.mainImage;
+    this.imageForm.reset({
+      url: image.url,
+      altText: image.altText,
+      displayOrder: image.displayOrder,
+      mainImage: image.mainImage
+    });
+  }
+
+  saveImage(product: AdminProduct): void {
+    this.clearMessages();
+    if (this.imageForm.invalid || this.isSubmitting) {
+      this.imageForm.markAllAsTouched();
+      this.errorMessage = 'Revise os dados da imagem.';
+      return;
+    }
+    const value = this.imageForm.getRawValue();
+    const request = {
+      url: value.url.trim(),
+      altText: value.altText.trim(),
+      displayOrder: value.displayOrder,
+      mainImage: value.mainImage || this.editingImageIsMain
+    };
+    this.isSubmitting = true;
+    const operation = this.editingImageId
+      ? this.adminService.updateProductImage(this.editingImageId, request)
+      : this.adminService.createProductImage(product.id, request);
+    operation.subscribe({
+      next: () => {
+        this.message = this.editingImageId ? 'Imagem atualizada.' : 'Imagem adicionada.';
+        this.isSubmitting = false;
+        this.editingImageId = null;
+        this.editingImageIsMain = false;
+        this.resetImageForm();
+        this.loadImages(product.id);
+      },
+      error: error => this.handleError(error)
+    });
+  }
+
+  deleteImage(product: AdminProduct, image: AdminProductImage): void {
+    this.clearMessages();
+    this.adminService.deleteProductImage(image.id).subscribe({
+      next: () => {
+        this.message = 'Imagem removida.';
+        this.loadImages(product.id);
+      },
+      error: error => this.handleError(error)
+    });
+  }
+
+  cancelImageEdit(): void {
+    this.editingImageId = null;
+    this.editingImageIsMain = false;
+    this.resetImageForm();
+  }
+
   toggleProduct(product: AdminProduct): void {
     this.adminService.toggleProduct(product.id, !product.active).subscribe({
       next: updated => {
@@ -555,6 +634,27 @@ export class AdminPageComponent implements OnInit {
     this.adminService.products().subscribe(products => {
       this.products = products;
       this.expandedProductId = expandedProductId;
+    });
+  }
+
+  private loadImages(productId: number): void {
+    this.adminService.productImages(productId).subscribe({
+      next: images => {
+        this.productImages = images;
+        if (!this.editingImageId && !this.imageForm.controls.url.value) {
+          this.imageForm.controls.displayOrder.setValue(images.length);
+        }
+      },
+      error: error => this.handleError(error)
+    });
+  }
+
+  private resetImageForm(): void {
+    this.imageForm.reset({
+      url: '',
+      altText: '',
+      displayOrder: this.productImages.length,
+      mainImage: false
     });
   }
 

@@ -82,6 +82,16 @@ export interface AdminProductDetails {
   brand?: string;
 }
 
+export interface AdminProductImage {
+  id: number;
+  url: string;
+  altText: string;
+  displayOrder: number;
+  mainImage: boolean;
+}
+
+export type AdminProductImageRequest = Omit<AdminProductImage, 'id'>;
+
 export type AdminProductUpdateRequest = Omit<AdminProductDetails, 'id' | 'active'>;
 
 export interface AdminCoupon {
@@ -149,6 +159,36 @@ export class AdminService {
       `${this.apiUrl}/products/${productId}/active`,
       { active }
     );
+  }
+
+  productImages(productId: number): Observable<AdminProductImage[]> {
+    return this.http.get<AdminProductImage[]>(
+      `${this.apiUrl}/products/${productId}/images`
+    );
+  }
+
+  createProductImage(
+    productId: number,
+    request: AdminProductImageRequest
+  ): Observable<AdminProductImage> {
+    return this.http.post<AdminProductImage>(
+      `${this.apiUrl}/products/${productId}/images`,
+      request
+    );
+  }
+
+  updateProductImage(
+    imageId: number,
+    request: AdminProductImageRequest
+  ): Observable<AdminProductImage> {
+    return this.http.put<AdminProductImage>(
+      `${this.apiUrl}/images/${imageId}`,
+      request
+    );
+  }
+
+  deleteProductImage(imageId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/images/${imageId}`);
   }
 
   createVariant(

@@ -465,6 +465,39 @@ class CommerceFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString());
         assertThat(disabledVariant.path("active").asBoolean()).isFalse();
+
+        JsonNode image = json(mockMvc.perform(post("/api/admin/products/{productId}/images", productId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "url", "https://example.test/segunda.jpg",
+                                "altText", "Produto visto de lado",
+                                "displayOrder", 1,
+                                "mainImage", true
+                        ))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString());
+        long imageId = image.path("id").asLong();
+        assertThat(image.path("mainImage").asBoolean()).isTrue();
+
+        JsonNode images = json(mockMvc.perform(get("/api/admin/products/{productId}/images", productId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(images.size()).isEqualTo(2);
+        assertThat(images.get(0).path("id").asLong()).isEqualTo(imageId);
+
+        mockMvc.perform(delete("/api/admin/images/{imageId}", imageId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer))
+                .andExpect(status().isNoContent());
+
+        JsonNode remainingImages = json(mockMvc.perform(
+                        get("/api/admin/products/{productId}/images", productId)
+                                .header(HttpHeaders.AUTHORIZATION, bearer))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(remainingImages.size()).isEqualTo(1);
+        assertThat(remainingImages.get(0).path("mainImage").asBoolean()).isTrue();
     }
 
     @Test

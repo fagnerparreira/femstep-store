@@ -60,6 +60,7 @@
             <div class="inventory-actions">
               <button type="button" (click)="editProduct(product)">Editar dados do produto</button>
               <button type="button" (click)="startVariantCreate(product)">Nova variação</button>
+              <button type="button" (click)="manageImages(product)">Gerenciar imagens</button>
             </div>
             <form
               class="product-edit-form"
@@ -99,6 +100,29 @@
                 <button type="button" (click)="addingVariantProductId = null">Cancelar</button>
               </div>
             </form>
+            <section class="image-manager" *ngIf="managingImagesProductId === product.id">
+              <div class="image-grid">
+                <article *ngFor="let image of productImages">
+                  <img [src]="image.url" [alt]="image.altText">
+                  <span><strong>{{ image.mainImage ? 'Principal' : 'Imagem' }}</strong><small>Ordem {{ image.displayOrder }}</small></span>
+                  <button type="button" (click)="editImage(image)">Editar</button>
+                  <button type="button" (click)="deleteImage(product, image)">Remover</button>
+                </article>
+              </div>
+              <form class="product-edit-form" [formGroup]="imageForm" (ngSubmit)="saveImage(product)">
+                <div class="form-grid">
+                  <label class="wide">URL HTTPS ou /assets/...<input formControlName="url"></label>
+                  <label>Texto alternativo<input formControlName="altText"></label>
+                  <label>Ordem<input formControlName="displayOrder" type="number" min="0"></label>
+                  <label class="checkbox"><input formControlName="mainImage" type="checkbox">Imagem principal</label>
+                </div>
+                <div class="form-actions">
+                  <button class="primary" type="submit" [disabled]="isSubmitting">{{ editingImageId ? 'Atualizar imagem' : 'Adicionar imagem' }}</button>
+                  <button type="button" *ngIf="editingImageId" (click)="cancelImageEdit()">Cancelar edição</button>
+                  <button type="button" (click)="managingImagesProductId = null">Fechar galeria</button>
+                </div>
+              </form>
+            </section>
             <div class="variant" *ngFor="let variant of product.inventory">
               <span><strong>{{ variant.sku }}</strong><small>{{ variant.size }} · {{ variant.color }} · {{ variant.reserved }} reservado(s)</small></span>
               <label>Estoque<input #stockInput type="number" min="0" [value]="variant.stock"></label>
