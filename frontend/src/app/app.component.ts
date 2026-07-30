@@ -9,5 +9,5 @@ import { MainLayoutComponent } from './layout/components/main-layout/main-layout
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'FemStep Store';
+  title = 'MOVAZU';
 }

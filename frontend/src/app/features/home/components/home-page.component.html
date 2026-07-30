@@ -1,82 +1,118 @@
 <div class="home-page">
-  <!-- Hero Section -->
   <section class="hero">
-    <div class="container">
-      <div class="hero-content">
-        <h1 class="hero-title">Bem-vinda à FemStep Store</h1>
-        <p class="hero-subtitle">Descubra a coleção mais elegante de sapatos femininos</p>
-        <a routerLink="/catalog" class="cta-button">Ver Catálogo</a>
+    <div class="container hero-content">
+      <div class="hero-copy">
+        <span class="eyebrow">Design brasileiro contemporâneo</span>
+        <h1>Elegância que acompanha o seu movimento.</h1>
+        <p>Calçados femininos criados para transformar conforto em presença, do primeiro passo ao último compromisso do dia.</p>
+        <div class="hero-actions">
+          <a routerLink="/catalog" class="primary-button">Conheça a coleção</a>
+          <a routerLink="/catalog" [queryParams]="{ sort: 'newest' }" class="secondary-button">Ver novidades</a>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Featured Products -->
+  <section class="brand-promises" aria-label="Diferenciais MOVAZU">
+    <div class="container promises-grid">
+      <div><strong>Design brasileiro</strong><span>Contemporâneo e autoral</span></div>
+      <div><strong>Conforto consciente</strong><span>Pensado para a vida real</span></div>
+      <div><strong>Materiais selecionados</strong><span>Toque, beleza e duração</span></div>
+      <div><strong>Presença em cada passo</strong><span>Do cotidiano às ocasiões</span></div>
+    </div>
+  </section>
+
+  <section class="category-showcase">
+    <div class="container">
+      <div class="section-heading heading-row">
+        <div>
+          <span class="eyebrow">Encontre seu par</span>
+          <h2>Feitos para o seu ritmo.</h2>
+        </div>
+        <p>Formas elegantes, linhas limpas e conforto como parte do desenho. Escolha o modelo que acompanha a sua maneira de caminhar.</p>
+      </div>
+      <div class="category-grid">
+        <a routerLink="/catalog" [queryParams]="{ category: 'saltos' }">
+          <span class="category-image"><img src="/assets/images/products/scarpin-aurora.png" alt="Scarpins e saltos femininos"></span>
+          <strong>Saltos</strong>
+          <small>Presença que alonga o passo</small>
+        </a>
+        <a routerLink="/catalog" [queryParams]="{ category: 'sapatilhas' }">
+          <span class="category-image"><img src="/assets/images/products/sapatilha-luna.png" alt="Sapatilhas femininas"></span>
+          <strong>Sapatilhas</strong>
+          <small>Leveza para todos os dias</small>
+        </a>
+        <a routerLink="/catalog" [queryParams]="{ category: 'botas' }">
+          <span class="category-image"><img src="/assets/images/products/bota-iris.png" alt="Botas femininas"></span>
+          <strong>Botas</strong>
+          <small>Textura e personalidade</small>
+        </a>
+        <a routerLink="/catalog" [queryParams]="{ category: 'sandalias' }">
+          <span class="category-image"><img src="/assets/images/products/sandalia-serena.png" alt="Sandálias femininas"></span>
+          <strong>Sandálias</strong>
+          <small>Liberdade em movimento</small>
+        </a>
+        <a routerLink="/catalog" [queryParams]="{ category: 'tenis' }">
+          <span class="category-image"><img src="/assets/images/products/tenis-flora.png" alt="Tênis femininos"></span>
+          <strong>Tênis</strong>
+          <small>Conforto com intenção</small>
+        </a>
+        <a routerLink="/catalog" [queryParams]="{ category: 'mocassins' }">
+          <span class="category-image"><img src="/assets/images/products/mocassim-alba.png" alt="Mocassins femininos"></span>
+          <strong>Mocassins</strong>
+          <small>Clássicos contemporâneos</small>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <section class="featured-products">
     <div class="container">
-      <div class="section-header">
-        <h2 class="section-title">Produtos em Destaque</h2>
-        <p class="section-subtitle">Nossas melhores escolhas para você</p>
+      <div class="section-heading heading-row">
+        <div>
+          <span class="eyebrow">Curadoria MOVAZU</span>
+          <h2>Escolhas em destaque</h2>
+        </div>
+        <a routerLink="/catalog" class="text-link">Ver toda a coleção</a>
       </div>
 
       <div class="loading-container" *ngIf="isLoading">
-        <app-loading-spinner></app-loading-spinner>
+        <app-loading-spinner loadingText="Preparando nossa seleção..."></app-loading-spinner>
       </div>
 
-      <div class="products-grid" *ngIf="!isLoading">
-        <app-product-card 
-          *ngFor="let product of featuredProducts" 
+      <div class="products-grid" *ngIf="!isLoading && featuredProducts.length">
+        <app-product-card
+          *ngFor="let product of featuredProducts"
           [product]="product">
         </app-product-card>
       </div>
 
       <div class="empty-state" *ngIf="!isLoading && featuredProducts.length === 0">
-        <p>Nenhum produto em destaque no momento.</p>
-        <a routerLink="/catalog" class="link-button">Ver todos os produtos</a>
-      </div>
-
-      <div class="section-footer" *ngIf="!isLoading && featuredProducts.length > 0">
-        <a routerLink="/catalog" class="view-all-button">Ver Todos os Produtos</a>
+        <h3>Estamos renovando a vitrine</h3>
+        <p>Enquanto isso, a coleção completa continua disponível para você.</p>
+        <a routerLink="/catalog" class="primary-button">Ver coleção</a>
       </div>
     </div>
   </section>
 
-  <!-- Categories Section -->
-  <section class="categories">
+  <section class="brand-story">
+    <div class="container story-grid">
+      <div class="story-media">
+        <img src="/assets/brand/movazu-packaging.webp" alt="Embalagens premium da MOVAZU" loading="lazy">
+      </div>
+      <div class="story-copy">
+        <span class="eyebrow">A nossa essência</span>
+        <h2>Movimento também é identidade.</h2>
+        <p>A MOVAZU nasce do encontro entre liberdade e presença. Criamos calçados femininos com olhar brasileiro, acabamento cuidadoso e conforto que não pede licença para ser elegante.</p>
+        <a routerLink="/catalog" class="light-button">Descubra a MOVAZU</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="brand-quote">
     <div class="container">
-      <div class="section-header">
-        <h2 class="section-title">Categorias</h2>
-        <p class="section-subtitle">Explore por estilo</p>
-      </div>
-
-      <div class="categories-grid">
-        <a routerLink="/catalog?category=saltos" class="category-card">
-          <div class="category-image">
-            <span class="category-emoji">👠</span>
-          </div>
-          <h3>Saltos</h3>
-        </a>
-
-        <a routerLink="/catalog?category=sapatilhas" class="category-card">
-          <div class="category-image">
-            <span class="category-emoji">👟</span>
-          </div>
-          <h3>Sapatilhas</h3>
-        </a>
-
-        <a routerLink="/catalog?category=botas" class="category-card">
-          <div class="category-image">
-            <span class="category-emoji">👢</span>
-          </div>
-          <h3>Botas</h3>
-        </a>
-
-        <a routerLink="/catalog?category=sandalias" class="category-card">
-          <div class="category-image">
-            <span class="category-emoji">👡</span>
-          </div>
-          <h3>Sandálias</h3>
-        </a>
-      </div>
+      <blockquote>“Não é apenas onde você chega. É como você escolhe caminhar.”</blockquote>
+      <span>MOVAZU · ELEGÂNCIA EM MOVIMENTO</span>
     </div>
   </section>
 </div>

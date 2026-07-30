@@ -1,99 +1,169 @@
+.benefits {
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.benefits-grid div {
+  min-height: 118px;
+  padding: 28px;
+  display: grid;
+  align-content: center;
+  border-right: 1px solid var(--color-border);
+}
+
+.benefits-grid div:last-child {
+  border-right: 0;
+}
+
+.benefits strong,
+.benefits span {
+  display: block;
+}
+
+.benefits strong {
+  margin-bottom: 5px;
+  color: var(--color-brand);
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+  font-weight: 600;
+}
+
+.benefits span {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
 .footer {
-  background: #2c3e50;
-  color: #ecf0f1;
-  padding: 40px 0 20px;
+  padding-top: 64px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
 
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr 0.9fr 1.3fr;
+  gap: 56px;
+  padding-bottom: 56px;
+}
+
+.footer-brand img {
+  width: 285px;
+  margin: -28px 0 -8px;
+}
+
+.footer h3 {
+  margin: 0 0 18px;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.footer p,
+.footer a {
+  color: #d7cbd1;
+  font-size: 0.84rem;
+}
+
+.footer p {
+  line-height: 1.7;
+}
+
+.footer nav {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.footer a {
+  margin-bottom: 11px;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: var(--color-white);
+}
+
+.social-copy {
+  margin-top: 20px;
+  font-weight: 700;
+}
+
+.newsletter {
+  display: flex;
+  margin-top: 18px;
+  border-bottom: 1px solid #8e7c74;
+}
+
+.newsletter input {
+  min-width: 0;
+  flex: 1;
+  padding: 10px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-white);
+}
+
+.newsletter button {
+  border: 0;
+  background: transparent;
+  color: var(--color-white);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.footer-bottom {
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-top: 1px solid #493d43;
+  color: #a99ca2;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 900px) {
+  .benefits-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .footer-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 40px;
-    margin-bottom: 30px;
+  .benefits-grid div:nth-child(2) {
+    border-right: 0;
   }
 
-  .footer-section {
-    h3, h4 {
-      color: #fff;
-      margin-bottom: 20px;
-      font-size: 18px;
-    }
-
-    p {
-      line-height: 1.6;
-      margin-bottom: 15px;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-
-      li {
-        margin-bottom: 10px;
-
-        a {
-          color: #bdc3c7;
-          text-decoration: none;
-          transition: color 0.3s ease;
-
-          &:hover {
-            color: #e91e63;
-          }
-        }
-      }
-    }
-
-    .social-links {
-      display: flex;
-      gap: 15px;
-
-      a {
-        display: inline-block;
-        padding: 8px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-        color: #fff;
-        text-decoration: none;
-        transition: background-color 0.3s ease;
-
-        &:hover {
-          background: #e91e63;
-        }
-      }
-    }
-  }
-
-  .footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 20px;
-    text-align: center;
-
-    p {
-      margin: 0;
-      color: #95a5a6;
-      font-size: 14px;
-    }
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 768px) {
-  .footer {
-    .footer-content {
-      grid-template-columns: 1fr;
-      gap: 30px;
-    }
+@media (max-width: 600px) {
+  .benefits-grid {
+    grid-template-columns: 1fr;
+  }
 
-    .footer-section {
-      text-align: center;
+  .benefits-grid div {
+    min-height: 92px;
+    padding: 20px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
 
-      .social-links {
-        justify-content: center;
-      }
-    }
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .footer-bottom {
+    padding-block: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
   }
 }

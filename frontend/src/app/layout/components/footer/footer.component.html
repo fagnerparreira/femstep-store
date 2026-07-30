@@ -1,46 +1,49 @@
+<section class="benefits" aria-label="Benefícios MOVAZU">
+  <div class="container benefits-grid">
+    <div><strong>Compra protegida</strong><span>Segurança em todas as etapas</span></div>
+    <div><strong>Troca descomplicada</strong><span>Até 7 dias para solicitar</span></div>
+    <div><strong>Pagamento flexível</strong><span>Pix ou cartão de crédito</span></div>
+    <div><strong>Entrega em todo o Brasil</strong><span>Acompanhe o seu pedido online</span></div>
+  </div>
+</section>
+
 <footer class="footer">
-  <div class="container">
-    <div class="footer-content">
-      <div class="footer-section">
-        <h3>FemStep Store</h3>
-        <p>Sua loja de sapatos femininos online</p>
-        <div class="social-links">
-          <a href="#" aria-label="Facebook">Facebook</a>
-          <a href="#" aria-label="Instagram">Instagram</a>
-          <a href="#" aria-label="Twitter">Twitter</a>
-        </div>
-      </div>
+  <div class="container footer-grid">
+    <section class="footer-brand">
+      <img src="/assets/brand/movazu-logo-light.svg" alt="MOVAZU — Elegância em movimento">
+      <p>Calçados femininos brasileiros. Elegância, conforto e presença em cada passo.</p>
+      <p class="social-copy">Siga o movimento MOVAZU</p>
+    </section>
 
-      <div class="footer-section">
-        <h4>Institucional</h4>
-        <ul>
-          <li><a href="#">Sobre Nós</a></li>
-          <li><a href="#">Política de Privacidade</a></li>
-          <li><a href="#">Termos de Uso</a></li>
-          <li><a href="#">Trocas e Devoluções</a></li>
-        </ul>
-      </div>
+    <nav aria-label="Institucional">
+      <h3>Institucional</h3>
+      <a routerLink="/about">Sobre nós</a>
+      <a routerLink="/privacy">Privacidade</a>
+      <a routerLink="/terms">Termos de uso</a>
+      <a routerLink="/returns">Trocas e devoluções</a>
+    </nav>
 
-      <div class="footer-section">
-        <h4>Atendimento</h4>
-        <ul>
-          <li><a href="#">Central de Ajuda</a></li>
-          <li><a href="#">Fale Conosco</a></li>
-          <li><a href="#">Formas de Pagamento</a></li>
-          <li><a href="#">Rastreamento</a></li>
-        </ul>
-      </div>
+    <nav aria-label="Atendimento">
+      <h3>Atendimento</h3>
+      <a routerLink="/help">Central de ajuda</a>
+      <a routerLink="/account/orders">Meus pedidos</a>
+      <a routerLink="/shipping">Entregas e prazos</a>
+      <a href="mailto:contato@movazu.com.br">contato@movazu.com.br</a>
+    </nav>
 
-      <div class="footer-section">
-        <h4>Contato</h4>
-        <p><strong>Email:</strong> contato@femstep.com.br</p>
-        <p><strong>Telefone:</strong> (11) 3000-0000</p>
-        <p><strong>Horário:</strong> Seg-Sex, 9h-18h</p>
-      </div>
-    </div>
+    <section>
+      <h3>Entre no movimento</h3>
+      <p>Novidades, lançamentos e histórias da MOVAZU diretamente no seu e-mail.</p>
+      <form class="newsletter">
+        <label class="sr-only" for="newsletter-email">Seu e-mail</label>
+        <input id="newsletter-email" type="email" placeholder="Seu e-mail" autocomplete="email">
+        <button type="submit">Cadastrar</button>
+      </form>
+    </section>
+  </div>
 
-    <div class="footer-bottom">
-      <p>&copy; 2024 FemStep Store. Todos os direitos reservados.</p>
-    </div>
+  <div class="container footer-bottom">
+    <span>© 2026 MOVAZU. Todos os direitos reservados.</span>
+    <span>Preços e condições exclusivos da loja online.</span>
   </div>
 </footer>

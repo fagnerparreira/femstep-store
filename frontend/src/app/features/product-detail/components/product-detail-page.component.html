@@ -1,0 +1,130 @@
+<main class="product-page">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Navegação estrutural">
+      <a routerLink="/">Início</a>
+      <span>/</span>
+      <a routerLink="/catalog">Sapatos</a>
+      <span>/</span>
+      <span>{{ product?.name }}</span>
+    </nav>
+
+    <div class="loading-state" *ngIf="isLoading">
+      <app-loading-spinner loadingText="Carregando produto..."></app-loading-spinner>
+    </div>
+
+    <div class="error-state" *ngIf="!isLoading && errorMessage">
+      <span>Produto indisponível</span>
+      <h1>{{ errorMessage }}</h1>
+      <a routerLink="/catalog">Voltar ao catálogo</a>
+    </div>
+
+    <article class="product-layout" *ngIf="!isLoading && product as currentProduct">
+      <section class="gallery" aria-label="Fotos do produto">
+        <div class="thumbnail-list" *ngIf="currentProduct.images?.length">
+          <button
+            type="button"
+            *ngFor="let image of currentProduct.images"
+            [class.selected]="selectedImage === image.url"
+            (click)="selectedImage = image.url">
+            <img [src]="image.url" [alt]="image.altText">
+          </button>
+        </div>
+        <div class="main-image">
+          <img [src]="selectedImage" [alt]="currentProduct.imageAlt || currentProduct.name">
+          <span class="sale-badge" *ngIf="currentProduct.onSale">Oferta especial</span>
+        </div>
+      </section>
+
+      <section class="product-info">
+        <span class="category">{{ currentProduct.category }}</span>
+        <h1>{{ currentProduct.name }}</h1>
+        <p class="short-description">{{ currentProduct.shortDescription }}</p>
+        <button
+          class="favorite-button"
+          type="button"
+          [disabled]="favoriteLoading"
+          [attr.aria-pressed]="isFavorite"
+          (click)="toggleFavorite()">
+          {{ isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos' }}
+        </button>
+
+        <div class="price">
+          <span class="original" *ngIf="currentProduct.originalPrice">
+            {{ currentProduct.originalPrice | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </span>
+          <strong>{{ currentProduct.price | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong>
+          <span>ou 6x de {{ currentProduct.price / 6 | currency:'BRL':'symbol':'1.2-2':'pt-BR' }} sem juros</span>
+        </div>
+
+        <div class="selector">
+          <div class="selector-label">
+            <strong>Tamanho</strong>
+            <button type="button">Guia de medidas</button>
+          </div>
+          <div class="size-options">
+            <button
+              type="button"
+              *ngFor="let size of currentProduct.availableSizes"
+              [class.selected]="selectedSize === size"
+              (click)="selectSize(size)">
+              {{ size }}
+            </button>
+          </div>
+        </div>
+
+        <div class="selector" *ngIf="selectedSize != null">
+          <div class="selector-label">
+            <strong>Cor</strong>
+            <span>{{ selectedColor || 'Selecione' }}</span>
+          </div>
+          <div class="color-options">
+            <button
+              type="button"
+              *ngFor="let color of colorsForSelectedSize()"
+              [class.selected]="selectedColor === color"
+              (click)="selectedColor = color; feedbackMessage = ''">
+              <span [class.black]="color === 'Preto'" [class.caramel]="color === 'Caramelo'"></span>
+              {{ color }}
+            </button>
+          </div>
+        </div>
+
+        <div class="purchase-row">
+          <label>
+            <span class="sr-only">Quantidade</span>
+            <select [(ngModel)]="quantity">
+              <option *ngFor="let option of [1, 2, 3, 4]" [value]="option">{{ option }}</option>
+            </select>
+          </label>
+          <button class="add-button" type="button" (click)="addToCart()">Adicionar à sacola</button>
+        </div>
+
+        <p class="feedback" [class.success]="feedbackMessage.includes('adicionado')" *ngIf="feedbackMessage">
+          {{ feedbackMessage }}
+        </p>
+
+        <div class="shipping">
+          <strong>Calcule o frete e prazo</strong>
+          <div>
+            <input [(ngModel)]="postalCode" inputmode="numeric" maxlength="9" placeholder="00000-000" aria-label="CEP">
+            <button type="button" (click)="shippingPreview()">Calcular</button>
+          </div>
+        </div>
+
+        <details open>
+          <summary>Detalhes do produto</summary>
+          <p>{{ currentProduct.description }}</p>
+          <dl>
+            <div><dt>Marca</dt><dd>{{ currentProduct.brand }}</dd></div>
+            <div><dt>Material</dt><dd>{{ currentProduct.material }}</dd></div>
+          </dl>
+        </details>
+
+        <details>
+          <summary>Trocas e devoluções</summary>
+          <p>Você pode solicitar devolução em até 7 dias após o recebimento, conforme as condições da loja.</p>
+        </details>
+      </section>
+    </article>
+  </div>
+</main>

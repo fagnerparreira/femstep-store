@@ -5,6 +5,6 @@ export const homeRoutes: Routes = [
   {
     path: '',
     component: HomePageComponent,
-    title: 'FemStep Store - Início'
+    title: 'MOVAZU - Início'
   }
 ];

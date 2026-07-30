@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"
+ viewBox="0 0 200 200" role="img" aria-label="MOVAZU">
+ 
+ 
+    <g transform="translate(12,12) scale(1.76)">
+      <path d="M10 76 L27 22 L50 62 L73 22 L90 76"
+            fill="none" stroke="#351A2F" stroke-width="8"
+            stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M68 27 H91 L68 72 H92"
+            fill="none" stroke="#D66D5D" stroke-width="6"
+            stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="50" cy="62" r="4.5" fill="#D66D5D"/>
+    </g>
+</svg>

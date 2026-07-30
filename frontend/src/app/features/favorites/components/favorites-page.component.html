@@ -1,0 +1,31 @@
+<main class="favorites-page">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="Navegação estrutural">
+      <a routerLink="/account">Minha conta</a>
+      <span>/</span>
+      <span>Favoritos</span>
+    </nav>
+
+    <header>
+      <span>Seleção pessoal</span>
+      <h1>Meus favoritos</h1>
+      <p>Guarde aqui os modelos que você quer comparar ou comprar depois.</p>
+    </header>
+
+    <app-loading-spinner *ngIf="isLoading" loadingText="Carregando favoritos..."></app-loading-spinner>
+    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+    <section class="empty" *ngIf="!isLoading && !errorMessage && products.length === 0">
+      <h2>Sua lista está vazia</h2>
+      <p>Explore o catálogo e salve os modelos de que mais gostar.</p>
+      <a routerLink="/catalog">Ver produtos</a>
+    </section>
+
+    <section class="grid" *ngIf="!isLoading && products.length">
+      <div *ngFor="let product of products">
+        <app-product-card [product]="product"></app-product-card>
+        <button type="button" (click)="remove(product)">Remover</button>
+      </div>
+    </section>
+  </div>
+</main>

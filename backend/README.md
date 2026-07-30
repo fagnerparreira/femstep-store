@@ -1,51 +1,44 @@
-# FemStep Store - Backend
+# MOVAZU — Backend
 
-Spring Boot 3.x REST API with Java 21.
+API Java 21 com Spring Boot 3.5 e PostgreSQL.
 
-## Features
+## Módulos
 
-- RESTful API architecture
-- JWT authentication and authorization
-- PostgreSQL database with Flyway migrations
-- Comprehensive error handling
-- Input validation and sanitization
+- autenticação JWT com sessão de refresh rotativa;
+- catálogo público e estoque por variação;
+- carrinho persistente;
+- endereços da conta;
+- checkout transacional, cupom e frete;
+- pedidos, pagamentos sandbox, cancelamento e expiração de reserva;
+- painel administrativo, inventário, rastreio e auditoria;
+- migrações Flyway e catálogo inicial.
 
-## Development
+## Executar
+
+Defina as variáveis descritas no `.env.example` da raiz e execute:
 
 ```bash
-# Run application
-./mvnw spring-boot:run
-
-# Run tests
-./mvnw test
-
-# Build JAR
-./mvnw clean package
-
-# Run with specific profile
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+mvn spring-boot:run
 ```
 
-## Architecture
+## Testes
 
-- **Config**: Security, database, and web configuration
-- **Controller**: REST endpoints
-- **Service**: Business logic layer
-- **Repository**: Data access layer with Spring Data JPA
-- **Domain**: JPA entities
-- **DTO**: Data transfer objects
-- **Mapper**: Entity ↔ DTO conversion
-- **Security**: JWT implementation
-- **Exception**: Global exception handling
+```bash
+mvn test
+```
 
-## Database
+O teste de integração inicia um PostgreSQL 15 descartável com Testcontainers,
+aplica todas as migrações e executa cadastro, carrinho, cupom, checkout,
+pagamento e baixa de estoque.
 
-- PostgreSQL as primary database
-- Flyway for schema migrations
-- Connection pooling with HikariCP
+## Principais APIs
 
-## Profiles
+- `/api/public/*`: catálogo
+- `/api/auth/*`: autenticação
+- `/api/cart`: carrinho autenticado
+- `/api/checkout/preview`: simulação final
+- `/api/orders`: checkout e pedidos
+- `/api/account/addresses`: endereços
+- `/api/admin/*`: operação administrativa
 
-- `dev`: Development environment
-- `prod`: Production environment
-- `test`: Test environment
+As rotas administrativas exigem `ROLE_ADMIN`.

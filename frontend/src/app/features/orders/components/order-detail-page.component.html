@@ -1,0 +1,62 @@
+<main class="order-page">
+  <div class="container">
+    <nav class="breadcrumb"><a routerLink="/account/orders">Pedidos</a><span>/</span><span>{{ order?.orderNumber }}</span></nav>
+    <p *ngIf="isLoading">Carregando pedido...</p>
+    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+    <ng-container *ngIf="order as currentOrder">
+      <header>
+        <span class="eyebrow">Pedido {{ currentOrder.orderNumber }}</span>
+        <h1>{{ statusLabel(currentOrder.status) }}</h1>
+        <p>Realizado em {{ currentOrder.createdAt | date:'dd/MM/yyyy, HH:mm' }}</p>
+      </header>
+
+      <section class="payment-card pending" *ngIf="currentOrder.status === 'PENDING_PAYMENT'">
+        <div>
+          <span>Pagamento PIX sandbox</span>
+          <h2>Use o código de demonstração</h2>
+          <p>Este ambiente não movimenta dinheiro real. Depois, simule a confirmação para testar o fluxo completo.</p>
+        </div>
+        <div class="pix-code" *ngIf="currentOrder.pixCode">
+          <code>{{ currentOrder.pixCode }}</code>
+          <button type="button" (click)="copyPix()">{{ copied ? 'Copiado!' : 'Copiar código' }}</button>
+        </div>
+        <button class="approve-button" type="button" [disabled]="isApproving" (click)="approveSandbox()">
+          {{ isApproving ? 'Aprovando...' : 'Simular pagamento aprovado' }}
+        </button>
+        <button class="cancel-button" type="button" [disabled]="isCancelling" (click)="cancel()">
+          {{ isCancelling ? 'Cancelando...' : 'Cancelar pedido' }}
+        </button>
+      </section>
+
+      <section class="payment-card approved" *ngIf="currentOrder.status === 'PAID'">
+        <span>✓ Pagamento confirmado</span>
+        <h2>Seu pedido entrou na fila de preparação.</h2>
+        <p>Entrega estimada em até {{ currentOrder.estimatedDays }} dias úteis.</p>
+      </section>
+
+      <div class="detail-layout">
+        <section class="items">
+          <h2>Itens</h2>
+          <article *ngFor="let item of currentOrder.items">
+            <img [src]="item.imageUrl" [alt]="item.productName">
+            <div>
+              <a [routerLink]="['/product', item.productSlug]"><strong>{{ item.productName }}</strong></a>
+              <p>Tamanho {{ item.size }} · {{ item.color }} · {{ item.quantity }} unidade(s)</p>
+              <small>SKU {{ item.sku }}</small>
+            </div>
+            <strong>{{ item.lineTotal | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong>
+          </article>
+        </section>
+        <aside>
+          <h2>Resumo</h2>
+          <p><span>Subtotal</span><strong>{{ currentOrder.subtotal | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></p>
+          <p><span>Desconto</span><strong>- {{ currentOrder.discount | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></p>
+          <p><span>Frete</span><strong>{{ currentOrder.shipping | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></p>
+          <p class="total"><span>Total</span><strong>{{ currentOrder.total | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></p>
+          <small>{{ currentOrder.shippingService }}</small>
+        </aside>
+      </div>
+    </ng-container>
+  </div>
+</main>

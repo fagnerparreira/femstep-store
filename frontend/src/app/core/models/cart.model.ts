@@ -1,6 +1,7 @@
 export interface CartItem {
   id: number;
   productId: number;
+  variantId?: number;
   productName: string;
   productSlug: string;
   productImage: string;
@@ -9,7 +10,8 @@ export interface CartItem {
   size?: number;
   color?: string;
   stock: number;
-  addedAt: Date;
+  lineTotal?: number;
+  addedAt?: Date;
 }
 
 export interface Cart {
@@ -17,8 +19,8 @@ export interface Cart {
   items: CartItem[];
   totalAmount: number;
   totalItems: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface AddToCartRequest {

@@ -1,94 +1,121 @@
-<div class="catalog-page">
+<main class="catalog-page">
   <div class="container">
-    <!-- Page Header -->
-    <div class="page-header">
-      <h1 class="page-title">Catálogo de Produtos</h1>
-      <p class="page-subtitle">Encontre o calçado perfeito para você</p>
+    <nav class="breadcrumb" aria-label="Navegação estrutural">
+      <a routerLink="/">Início</a>
+      <span aria-hidden="true">/</span>
+      <span>{{ categoryName() }}</span>
+    </nav>
+
+    <header class="catalog-header">
+      <span class="eyebrow">Coleção MOVAZU</span>
+      <h1>{{ searchTerm ? 'Resultados para “' + searchTerm + '”' : categoryName() }}</h1>
+      <p>Modelos selecionados para combinar conforto, personalidade e praticidade.</p>
+    </header>
+
+    <nav class="category-strip" aria-label="Categorias de produtos">
+      <button type="button" [class.active]="!selectedCategory" (click)="selectCategory('')">Todos</button>
+      <button
+        type="button"
+        *ngFor="let category of categories"
+        [class.active]="selectedCategory === category.slug"
+        (click)="selectCategory(category.slug)">
+        {{ category.name }}
+      </button>
+    </nav>
+
+    <div class="catalog-toolbar">
+      <span><strong>{{ totalCount }}</strong> produtos</span>
+      <label>
+        <span>Ordenar por</span>
+        <select [(ngModel)]="sort" (change)="applyFilters()">
+          <option value="featured">Destaques</option>
+          <option value="newest">Mais recentes</option>
+          <option value="price-asc">Menor preço</option>
+          <option value="price-desc">Maior preço</option>
+          <option value="name">Nome</option>
+        </select>
+      </label>
     </div>
 
-    <!-- Filters and Search -->
-    <div class="filters-section">
-      <div class="search-bar">
-        <input 
-          type="text" 
-          [(ngModel)]="searchTerm" 
-          placeholder="Buscar produtos..."
-          (keyup.enter)="onSearchSubmit()"
-          class="search-input">
-        <button (click)="onSearchSubmit()" class="search-button">🔍</button>
-      </div>
+    <div class="catalog-layout">
+      <aside class="filters" aria-label="Filtros do catálogo">
+        <div class="filter-title">
+          <h2>Filtrar</h2>
+          <button type="button" (click)="clearFilters()">Limpar</button>
+        </div>
 
-      <div class="category-filters">
-        <button 
-          class="category-btn" 
-          [class.active]="!selectedCategory"
-          (click)="onCategoryChange(null)">
-          Todos
-        </button>
-        <button 
-          class="category-btn" 
-          [class.active]="selectedCategory === 'saltos'"
-          (click)="onCategoryChange('saltos')">
-          Saltos
-        </button>
-        <button 
-          class="category-btn" 
-          [class.active]="selectedCategory === 'sapatilhas'"
-          (click)="onCategoryChange('sapatilhas')">
-          Sapatilhas
-        </button>
-        <button 
-          class="category-btn" 
-          [class.active]="selectedCategory === 'botas'"
-          (click)="onCategoryChange('botas')">
-          Botas
-        </button>
-        <button 
-          class="category-btn" 
-          [class.active]="selectedCategory === 'sandalias'"
-          (click)="onCategoryChange('sandalias')">
-          Sandálias
-        </button>
-      </div>
+        <form (ngSubmit)="applyFilters()">
+          <fieldset>
+            <legend>Busca</legend>
+            <input name="searchTerm" type="search" [(ngModel)]="searchTerm" placeholder="Nome ou material">
+          </fieldset>
 
-      <div class="active-filters" *ngIf="selectedCategory || searchTerm">
-        <span class="filter-label">Filtros ativos:</span>
-        <span class="filter-tag" *ngIf="selectedCategory">
-          {{ getCategoryDisplayName(selectedCategory) }}
-          <button class="remove-filter" (click)="onCategoryChange(null)">×</button>
-        </span>
-        <span class="filter-tag" *ngIf="searchTerm">
-          "{{ searchTerm }}"
-          <button class="remove-filter" (click)="searchTerm = ''; onSearchSubmit()">×</button>
-        </span>
-        <button class="clear-all" (click)="clearFilters()">Limpar todos</button>
-      </div>
-    </div>
+          <fieldset>
+            <legend>Tamanho</legend>
+            <div class="option-grid size-grid">
+              <button
+                type="button"
+                *ngFor="let size of sizes"
+                [class.selected]="selectedSize === size"
+                (click)="selectedSize = selectedSize === size ? null : size">
+                {{ size }}
+              </button>
+            </div>
+          </fieldset>
 
-    <!-- Loading State -->
-    <div class="loading-container" *ngIf="isLoading">
-      <app-loading-spinner></app-loading-spinner>
-    </div>
+          <fieldset>
+            <legend>Cor</legend>
+            <label class="radio-option" *ngFor="let color of colors">
+              <input type="radio" name="color" [value]="color" [(ngModel)]="selectedColor">
+              <span class="color-dot" [class.black]="color === 'Preto'" [class.caramel]="color === 'Caramelo'"></span>
+              {{ color }}
+            </label>
+            <button class="clear-color" type="button" *ngIf="selectedColor" (click)="selectedColor = ''">Remover cor</button>
+          </fieldset>
 
-    <!-- Products Grid -->
-    <div class="products-section" *ngIf="!isLoading">
-      <div class="products-count">
-        <span>{{ products.length }} produtos encontrados</span>
-      </div>
+          <fieldset>
+            <legend>Faixa de preço</legend>
+            <div class="price-inputs">
+              <label><span>De</span><input name="minPrice" type="number" min="0" [(ngModel)]="minPrice"></label>
+              <label><span>Até</span><input name="maxPrice" type="number" min="0" [(ngModel)]="maxPrice"></label>
+            </div>
+          </fieldset>
 
-      <div class="products-grid" *ngIf="products.length > 0">
-        <app-product-card 
-          *ngFor="let product of products" 
-          [product]="product">
-        </app-product-card>
-      </div>
+          <button class="apply-button" type="submit">Aplicar filtros</button>
+        </form>
+      </aside>
 
-      <div class="empty-state" *ngIf="products.length === 0">
-        <div class="empty-icon">🔍</div>
-        <h3>Nenhum produto encontrado</h3>
-        <p>Tente ajustar seus filtros ou buscar por outros termos.</p>
-        <button class="clear-filters-btn" (click)="clearFilters()">Limpar filtros</button>
-      </div>
+      <section class="products-section" aria-live="polite">
+        <div class="loading-container" *ngIf="isLoading">
+          <app-loading-spinner loadingText="Carregando produtos..."></app-loading-spinner>
+        </div>
+
+        <div class="error-state" *ngIf="!isLoading && errorMessage">
+          <h2>Algo não saiu como esperado</h2>
+          <p>{{ errorMessage }}</p>
+          <button type="button" (click)="applyFilters()">Tentar novamente</button>
+        </div>
+
+        <div class="products-grid" *ngIf="!isLoading && !errorMessage && products.length">
+          <app-product-card
+            *ngFor="let product of products"
+            [product]="product">
+          </app-product-card>
+        </div>
+
+        <div class="empty-state" *ngIf="!isLoading && !errorMessage && products.length === 0">
+          <span>Nenhum par encontrado</span>
+          <h2>Vamos tentar outros filtros?</h2>
+          <p>Altere tamanho, cor ou faixa de preço para ampliar os resultados.</p>
+          <button type="button" (click)="clearFilters()">Limpar filtros</button>
+        </div>
+
+        <nav class="pagination" *ngIf="!isLoading && totalPages > 1" aria-label="Paginação">
+          <button type="button" [disabled]="currentPage === 0" (click)="changePage(currentPage - 1)">Anterior</button>
+          <span>Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+          <button type="button" [disabled]="currentPage + 1 >= totalPages" (click)="changePage(currentPage + 1)">Próxima</button>
+        </nav>
+      </section>
     </div>
   </div>
-</div>
+</main>

@@ -1,33 +1,70 @@
+<div class="announcement">
+  <div class="container announcement-content">
+    <span>Design brasileiro · conforto em movimento</span>
+    <span class="announcement-divider" aria-hidden="true"></span>
+    <span>Frete grátis a partir de R$ 299</span>
+  </div>
+</div>
+
 <header class="header">
   <div class="container">
-    <nav class="navbar">
-      <a routerLink="/" class="logo">
-        <h1>FemStep Store</h1>
+    <div class="navbar">
+      <a routerLink="/" class="logo" aria-label="MOVAZU — página inicial">
+        <img src="/assets/brand/movazu-logo-primary.svg" alt="MOVAZU — Elegância em movimento">
       </a>
-      
-      <ul class="nav-links">
-        <li>
-          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-            Início
-          </a>
-        </li>
-        <li>
-          <a routerLink="/catalog" routerLinkActive="active">
-            Catálogo
-          </a>
-        </li>
-      </ul>
 
-      <div class="nav-actions">
-        <a routerLink="/cart" class="cart-link">
-          <span class="cart-icon">🛒</span>
-          <span class="cart-count">0</span>
+      <form class="search" role="search" (ngSubmit)="submitSearch()">
+        <label class="sr-only" for="store-search">Buscar produtos</label>
+        <input
+          id="store-search"
+          name="search"
+          type="search"
+          [(ngModel)]="searchTerm"
+          placeholder="Busque por modelo, estilo ou ocasião"
+          autocomplete="off"
+        >
+        <button type="submit">Buscar</button>
+      </form>
+
+      <nav class="nav-actions" aria-label="Ações da conta">
+        <ng-container *ngIf="currentUser$ | async as user; else loginLink">
+          <a routerLink="/account" class="nav-action">
+            <span class="nav-action-label">Olá, {{ user.firstName }}</span>
+            <strong>Minha conta</strong>
+          </a>
+          <a routerLink="/favorites" class="nav-action">
+            <span class="nav-action-label">Sua lista</span>
+            <strong>Favoritos</strong>
+          </a>
+          <a *ngIf="user.roles.includes('ROLE_ADMIN')" routerLink="/admin" class="nav-action">
+            <span class="nav-action-label">Gestão</span>
+            <strong>Painel</strong>
+          </a>
+          <button type="button" class="logout-button" (click)="logout()">Sair</button>
+        </ng-container>
+
+        <ng-template #loginLink>
+          <a routerLink="/auth/login" class="nav-action">
+            <span class="nav-action-label">Boas-vindas</span>
+            <strong>Entrar</strong>
+          </a>
+        </ng-template>
+
+        <a routerLink="/cart" class="cart-link" aria-label="Abrir sacola">
+          <span>Sacola</span>
+          <strong class="cart-count">{{ (cart$ | async)?.totalItems ?? 0 }}</strong>
         </a>
-        
-        <a routerLink="/auth/login" class="auth-link">
-          Entrar
-        </a>
-      </div>
+      </nav>
+    </div>
+
+    <nav class="category-nav" aria-label="Navegação principal">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Início</a>
+      <a routerLink="/catalog" routerLinkActive="active">Todos os modelos</a>
+      <a routerLink="/catalog" [queryParams]="{ sort: 'newest' }">Novidades</a>
+      <a routerLink="/catalog" [queryParams]="{ category: 'saltos' }">Saltos</a>
+      <a routerLink="/catalog" [queryParams]="{ category: 'sapatilhas' }">Sapatilhas</a>
+      <a routerLink="/catalog" [queryParams]="{ category: 'botas' }">Botas</a>
+      <a routerLink="/catalog" [queryParams]="{ category: 'sandalias' }">Sandálias</a>
     </nav>
   </div>
 </header>

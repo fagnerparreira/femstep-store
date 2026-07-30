@@ -1,0 +1,11 @@
+package com.femstep.store.dto.cart;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
+public record CartItemRequest(
+        @NotNull Long variantId,
+        @Min(1) @Max(10) int quantity
+) {
+}

@@ -1,0 +1,24 @@
+<main class="orders-page">
+  <div class="container">
+    <nav class="breadcrumb"><a routerLink="/account">Minha conta</a><span>/</span><span>Pedidos</span></nav>
+    <span class="eyebrow">Histórico</span>
+    <h1>Meus pedidos</h1>
+    <p class="intro">Acompanhe pagamentos, preparação e entrega das suas compras.</p>
+
+    <p *ngIf="isLoading">Carregando pedidos...</p>
+    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <section class="empty" *ngIf="!isLoading && !orders.length">
+      <h2>Você ainda não fez nenhum pedido</h2>
+      <a routerLink="/catalog">Conhecer a coleção</a>
+    </section>
+    <section class="order-list" *ngIf="orders.length">
+      <a [routerLink]="['/account/orders', order.orderNumber]" class="order-card" *ngFor="let order of orders">
+        <div><small>Pedido</small><strong>{{ order.orderNumber }}</strong></div>
+        <div><small>Data</small><strong>{{ order.createdAt | date:'dd/MM/yyyy, HH:mm' }}</strong></div>
+        <div><small>Status</small><strong class="status">{{ statusLabel(order.status) }}</strong></div>
+        <div class="amount"><small>Total</small><strong>{{ order.total | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></div>
+        <span class="arrow">→</span>
+      </a>
+    </section>
+  </div>
+</main>

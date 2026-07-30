@@ -1,0 +1,70 @@
+<main class="checkout-page">
+  <div class="container">
+    <nav class="breadcrumb"><a routerLink="/cart">Sacola</a><span>/</span><span>Checkout seguro</span></nav>
+    <header>
+      <span class="eyebrow">Finalização</span>
+      <h1>Onde devemos entregar?</h1>
+      <p>Confira seus dados. O estoque e os valores serão validados novamente pelo servidor.</p>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="checkout-layout">
+        <div class="form-sections">
+          <section>
+            <div class="section-heading"><span>1</span><div><h2>Endereço de entrega</h2><p>Informe o endereço completo.</p></div></div>
+            <div class="fields">
+              <label class="wide">Nome de quem recebe<input formControlName="recipientName"><small *ngIf="invalid('recipientName')">Campo obrigatório.</small></label>
+              <label>CEP<input formControlName="postalCode" inputmode="numeric" maxlength="9" placeholder="00000000" (blur)="lookupPostalCode()"><small *ngIf="invalid('postalCode')">Use 8 números.</small><small *ngIf="!invalid('postalCode') && (isLookingUpPostalCode || postalCodeMessage)">{{ isLookingUpPostalCode ? 'Consultando CEP...' : postalCodeMessage }}</small></label>
+              <label class="street">Rua ou avenida<input formControlName="street"><small *ngIf="invalid('street')">Campo obrigatório.</small></label>
+              <label>Número<input formControlName="number"><small *ngIf="invalid('number')">Campo obrigatório.</small></label>
+              <label>Complemento<input formControlName="complement" placeholder="Opcional"></label>
+              <label>Bairro<input formControlName="neighborhood"><small *ngIf="invalid('neighborhood')">Campo obrigatório.</small></label>
+              <label>Cidade<input formControlName="city"><small *ngIf="invalid('city')">Campo obrigatório.</small></label>
+              <label>UF<input formControlName="state" maxlength="2" placeholder="SP"><small *ngIf="invalid('state')">Use 2 letras.</small></label>
+            </div>
+          </section>
+
+          <section>
+            <div class="section-heading"><span>2</span><div><h2>Pagamento</h2><p>Ambiente de demonstração seguro.</p></div></div>
+            <div class="payment-options">
+              <label [class.selected]="form.controls.paymentMethod.value === 'PIX'">
+                <input type="radio" formControlName="paymentMethod" value="PIX">
+                <span><strong>PIX sandbox</strong><small>Gera um código de teste para aprovação.</small></span>
+              </label>
+              <label [class.selected]="form.controls.paymentMethod.value === 'SANDBOX_CARD'">
+                <input type="radio" formControlName="paymentMethod" value="SANDBOX_CARD">
+                <span><strong>Cartão de teste</strong><small>Aprovação imediata, sem coletar dados reais.</small></span>
+              </label>
+            </div>
+            <label class="notes">Observações do pedido<textarea formControlName="notes" rows="3" placeholder="Opcional"></textarea></label>
+          </section>
+        </div>
+
+        <aside class="summary" *ngIf="cart$ | async as cart">
+          <span class="eyebrow">Seu pedido</span>
+          <div class="mini-item" *ngFor="let item of cart.items">
+            <img [src]="item.productImage" [alt]="item.productName">
+            <p><strong>{{ item.productName }}</strong><small>{{ item.quantity }} × tamanho {{ item.size }}</small></p>
+            <span>{{ item.price * item.quantity | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+          </div>
+          <label class="coupon">Cupom<input formControlName="couponCode" placeholder="BEMVINDA10"></label>
+          <button type="button" class="secondary-button" (click)="calculate()" [disabled]="isLoadingPreview">
+            {{ isLoadingPreview ? 'Calculando...' : 'Calcular entrega e cupom' }}
+          </button>
+          <div class="totals">
+            <p><span>Subtotal</span><strong>{{ (preview?.subtotal ?? cart.totalAmount) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></p>
+            <p><span>Desconto</span><strong>- {{ (preview?.discount ?? 0) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></p>
+            <p><span>Frete</span><strong>{{ preview ? (preview.shipping | currency:'BRL':'symbol':'1.2-2':'pt-BR') : 'A calcular' }}</strong></p>
+            <p class="total"><span>Total</span><strong>{{ (preview?.total ?? cart.totalAmount) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></p>
+          </div>
+          <p class="delivery" *ngIf="preview">{{ preview.shippingService }} · até {{ preview.estimatedDays }} dias úteis</p>
+          <button type="submit" class="pay-button" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Criando pedido...' : 'Confirmar pedido' }}
+          </button>
+          <small class="security-note">🔒 Checkout protegido. Nunca informe dados de cartão reais no sandbox.</small>
+        </aside>
+      </div>
+      <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+    </form>
+  </div>
+</main>

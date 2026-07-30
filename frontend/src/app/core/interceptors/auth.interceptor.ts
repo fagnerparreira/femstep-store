@@ -1,15 +1,14 @@
+import { inject } from '@angular/core';
 import { HttpInterceptorFn } from '@angular/common/http';
+import { AuthTokenStore } from '../services/auth-token-store.service';
 
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // Add auth token to requests
-  const authToken = localStorage.getItem('authToken');
-  
-  if (authToken) {
-    const authReq = req.clone({
-      headers: req.headers.set('Authorization', `Bearer ${authToken}`)
-    });
-    return next(authReq);
+export const authInterceptor: HttpInterceptorFn = (request, next) => {
+  const token = inject(AuthTokenStore).get();
+  if (!token) {
+    return next(request);
   }
-  
-  return next(req);
+
+  return next(request.clone({
+    setHeaders: { Authorization: `Bearer ${token}` }
+  }));
 };

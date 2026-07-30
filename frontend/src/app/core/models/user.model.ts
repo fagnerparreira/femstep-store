@@ -20,11 +20,23 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
-  cpf: string;
+  cpf?: string;
 }
 
 export interface AuthResponse {
-  user: User;
   token: string;
+  type: 'Bearer';
+  userId: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  roles: string[];
+  emailVerified?: boolean;
   expiresIn: number;
+}
+
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  cpf: string;
 }

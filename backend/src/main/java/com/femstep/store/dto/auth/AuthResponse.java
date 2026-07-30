@@ -1,5 +1,7 @@
 package com.femstep.store.dto.auth;
 
+import java.util.List;
+
 public class AuthResponse {
     
     private String token;
@@ -8,15 +10,26 @@ public class AuthResponse {
     private String email;
     private String firstName;
     private String lastName;
+    private List<String> roles;
+    private long expiresIn;
 
     public AuthResponse() {}
 
-    public AuthResponse(String token, Long userId, String email, String firstName, String lastName) {
+    public AuthResponse(
+            String token,
+            Long userId,
+            String email,
+            String firstName,
+            String lastName,
+            List<String> roles,
+            long expiresIn) {
         this.token = token;
         this.userId = userId;
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.roles = roles;
+        this.expiresIn = expiresIn;
     }
 
     public String getToken() {
@@ -65,5 +78,21 @@ public class AuthResponse {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
+    }
+
+    public long getExpiresIn() {
+        return expiresIn;
+    }
+
+    public void setExpiresIn(long expiresIn) {
+        this.expiresIn = expiresIn;
     }
 }
