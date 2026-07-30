@@ -51,7 +51,7 @@ public class AdminBootstrap implements ApplicationRunner {
             User created = new User();
             created.setEmail(adminEmail);
             created.setFirstName("Admin");
-            created.setLastName("FemStep");
+            created.setLastName("MOVAZU");
             created.setActive(true);
             created.setPassword(passwordEncoder.encode(adminPassword));
             return created;

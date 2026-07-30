@@ -12,11 +12,11 @@ export class SeoService {
   ) {}
 
   setProduct(product: Product): void {
-    const title = product.seoTitle?.trim() || `${product.name} | FemStep Store`;
+    const title = product.seoTitle?.trim() || `${product.name} | MOVAZU`;
     const description = product.seoDescription?.trim()
       || product.shortDescription?.trim()
       || product.description?.trim()
-      || `Conheça ${product.name} na FemStep Store.`;
+      || `Conheça ${product.name} na MOVAZU.`;
     const url = this.absoluteUrl(`/product/${product.slug}`);
     const image = this.absoluteUrl(product.imageUrl);
 
@@ -35,7 +35,7 @@ export class SeoService {
       description,
       image: [image],
       sku: product.variants?.[0]?.sku,
-      brand: { '@type': 'Brand', name: product.brand || 'FemStep' },
+      brand: { '@type': 'Brand', name: product.brand || 'MOVAZU' },
       offers: {
         '@type': 'Offer',
         priceCurrency: 'BRL',

@@ -18,7 +18,7 @@ public class HealthController {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
         response.put("timestamp", LocalDateTime.now());
-        response.put("application", "FemStep Store Backend");
+        response.put("application", "MOVAZU Backend");
         response.put("version", "1.0.0");
         return ResponseEntity.ok(response);
     }

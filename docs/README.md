@@ -1,4 +1,4 @@
-# Documentação do FemStep Store
+# Documentação do MOVAZU
 
 Esta pasta registra o estado real e as próximas decisões do projeto.
 

@@ -457,7 +457,7 @@ class CommerceFlowIntegrationTest {
                 Map.entry("categoryId", categoryId),
                 Map.entry("featured", false),
                 Map.entry("material", "Sintético"),
-                Map.entry("brand", "FemStep"),
+                Map.entry("brand", "MOVAZU"),
                 Map.entry("imageUrl", "https://example.test/produto.jpg"),
                 Map.entry("variants", List.of(Map.of(
                         "sku", "TEST-" + suffix.toUpperCase(),
@@ -494,7 +494,7 @@ class CommerceFlowIntegrationTest {
                                 "categoryId", categoryId,
                                 "featured", true,
                                 "material", "Couro",
-                                "brand", "FemStep"
+                                "brand", "MOVAZU"
                         ))))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString());

@@ -18,7 +18,7 @@
   background: linear-gradient(180deg, transparent 45%, rgba(45, 39, 37, 0.72));
 }
 
-.auth-visual img {
+.auth-visual > img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -33,17 +33,13 @@
   color: var(--color-white);
 }
 
-.auth-visual span,
 .auth-visual strong {
   display: block;
 }
 
-.auth-visual span {
-  margin-bottom: 12px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+.auth-logo {
+  width: 290px;
+  margin: -26px 0 0;
 }
 
 .auth-visual strong {
@@ -157,8 +153,9 @@ form > button {
   min-height: 52px;
   margin-top: 12px;
   border: 1px solid var(--color-brand);
+  border-radius: 999px;
   background: var(--color-brand);
-  color: var(--color-white);
+  color: var(--color-surface);
   font-weight: 700;
   cursor: pointer;
 }

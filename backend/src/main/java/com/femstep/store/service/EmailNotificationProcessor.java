@@ -86,7 +86,7 @@ public class EmailNotificationProcessor {
         return switch (message.eventType()) {
             case "EMAIL_VERIFICATION_REQUESTED" -> new EmailContent(
                     email,
-                    "Confirme seu e-mail na FemStep",
+                    "Confirme seu e-mail na MOVAZU",
                     """
                     Olá!
 
@@ -98,7 +98,7 @@ public class EmailNotificationProcessor {
             );
             case "PASSWORD_RESET_REQUESTED" -> new EmailContent(
                     email,
-                    "Redefinição de senha da FemStep",
+                    "Redefinição de senha da MOVAZU",
                     """
                     Recebemos uma solicitação para redefinir sua senha.
 

@@ -1,4 +1,4 @@
-# Plano total de implementação — FemStep Store
+# Plano total de implementação — MOVAZU
 
 ## 1. Objetivo
 
@@ -161,7 +161,7 @@ indicada:
 
 ### Identidade própria proposta
 
-- Marca: FemStep Store.
+- Marca: MOVAZU.
 - Paleta: off-white, areia, café, rosa queimado e grafite.
 - Tipografia: título editorial e texto sem serifa legível.
 - Fotografias com fundo uniforme e enquadramento consistente.
@@ -598,7 +598,7 @@ Aceite:
 
 ### Fase 3 — Loja visual e catálogo completo (5–7 dias)
 
-- Home inspirada na referência, com identidade FemStep.
+- Home inspirada na referência, com identidade MOVAZU.
 - Header com busca, conta, favoritos e contador reativo da sacola.
 - Página de categoria com breadcrumb, chips visuais, filtros e ordenação.
 - Card com foto, preço BRL, desconto, parcelamento e tamanhos.
@@ -813,7 +813,7 @@ desde que os adaptadores de pagamento e frete sejam respeitados.
 
 ## 17. Definição de “loja funcional”
 
-A FemStep só será considerada funcional quando:
+A MOVAZU só será considerada funcional quando:
 
 - um cliente conseguir criar conta e entrar;
 - produtos reais vierem do banco;

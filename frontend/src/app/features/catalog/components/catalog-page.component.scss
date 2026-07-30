@@ -196,11 +196,11 @@ fieldset > input {
 }
 
 .color-dot.black {
-  background: #252221;
+  background: var(--color-brand-dark);
 }
 
 .color-dot.caramel {
-  background: #a66843;
+  background: var(--color-accent);
 }
 
 .price-inputs {

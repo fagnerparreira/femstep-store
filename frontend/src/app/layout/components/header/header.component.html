@@ -1,6 +1,6 @@
 <div class="announcement">
   <div class="container announcement-content">
-    <span>10% de desconto na primeira compra</span>
+    <span>Design brasileiro · conforto em movimento</span>
     <span class="announcement-divider" aria-hidden="true"></span>
     <span>Frete grátis a partir de R$ 299</span>
   </div>
@@ -9,12 +9,8 @@
 <header class="header">
   <div class="container">
     <div class="navbar">
-      <a routerLink="/" class="logo" aria-label="FemStep Store — página inicial">
-        <span class="logo-mark">F</span>
-        <span>
-          <strong>FemStep</strong>
-          <small>STORE</small>
-        </span>
+      <a routerLink="/" class="logo" aria-label="MOVAZU — página inicial">
+        <img src="/assets/brand/movazu-logo-primary.svg" alt="MOVAZU — Elegância em movimento">
       </a>
 
       <form class="search" role="search" (ngSubmit)="submitSearch()">
@@ -24,7 +20,7 @@
           name="search"
           type="search"
           [(ngModel)]="searchTerm"
-          placeholder="O que você procura?"
+          placeholder="Busque por modelo, estilo ou ocasião"
           autocomplete="off"
         >
         <button type="submit">Buscar</button>
@@ -63,7 +59,8 @@
 
     <nav class="category-nav" aria-label="Navegação principal">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Início</a>
-      <a routerLink="/catalog" routerLinkActive="active">Todos os sapatos</a>
+      <a routerLink="/catalog" routerLinkActive="active">Todos os modelos</a>
+      <a routerLink="/catalog" [queryParams]="{ sort: 'newest' }">Novidades</a>
       <a routerLink="/catalog" [queryParams]="{ category: 'saltos' }">Saltos</a>
       <a routerLink="/catalog" [queryParams]="{ category: 'sapatilhas' }">Sapatilhas</a>
       <a routerLink="/catalog" [queryParams]="{ category: 'botas' }">Botas</a>

@@ -1,58 +1,66 @@
 <div class="home-page">
   <section class="hero">
-    <div class="container hero-grid">
+    <div class="container hero-content">
       <div class="hero-copy">
-        <span class="eyebrow">Coleção Essenciais</span>
-        <h1>Seu estilo começa pelos seus passos.</h1>
-        <p>Calçados femininos que unem presença, conforto e versatilidade para acompanhar a sua rotina.</p>
+        <span class="eyebrow">Design brasileiro contemporâneo</span>
+        <h1>Elegância que acompanha o seu movimento.</h1>
+        <p>Calçados femininos criados para transformar conforto em presença, do primeiro passo ao último compromisso do dia.</p>
         <div class="hero-actions">
-          <a routerLink="/catalog" class="primary-button">Explorar coleção</a>
-          <a routerLink="/catalog" [queryParams]="{ sort: 'newest' }" class="secondary-link">Ver novidades</a>
-        </div>
-      </div>
-      <div class="hero-media">
-        <img
-          src="/assets/images/products/scarpin-aurora.png"
-          alt="Sapato feminino elegante em composição editorial"
-        >
-        <div class="hero-note">
-          <strong>Feitos para o seu ritmo</strong>
-          <span>Modelos selecionados com cuidado</span>
+          <a routerLink="/catalog" class="primary-button">Conheça a coleção</a>
+          <a routerLink="/catalog" [queryParams]="{ sort: 'newest' }" class="secondary-button">Ver novidades</a>
         </div>
       </div>
     </div>
   </section>
 
+  <section class="brand-promises" aria-label="Diferenciais MOVAZU">
+    <div class="container promises-grid">
+      <div><strong>Design brasileiro</strong><span>Contemporâneo e autoral</span></div>
+      <div><strong>Conforto consciente</strong><span>Pensado para a vida real</span></div>
+      <div><strong>Materiais selecionados</strong><span>Toque, beleza e duração</span></div>
+      <div><strong>Presença em cada passo</strong><span>Do cotidiano às ocasiões</span></div>
+    </div>
+  </section>
+
   <section class="category-showcase">
     <div class="container">
-      <div class="section-heading">
-        <span class="eyebrow">Encontre seu par</span>
-        <h2>Escolha por estilo</h2>
+      <div class="section-heading heading-row">
+        <div>
+          <span class="eyebrow">Encontre seu par</span>
+          <h2>Feitos para o seu ritmo.</h2>
+        </div>
+        <p>Formas elegantes, linhas limpas e conforto como parte do desenho. Escolha o modelo que acompanha a sua maneira de caminhar.</p>
       </div>
       <div class="category-grid">
         <a routerLink="/catalog" [queryParams]="{ category: 'saltos' }">
-          <img src="/assets/images/products/scarpin-aurora.png" alt="">
-          <span>Saltos</span>
+          <span class="category-image"><img src="/assets/images/products/scarpin-aurora.png" alt="Scarpins e saltos femininos"></span>
+          <strong>Saltos</strong>
+          <small>Presença que alonga o passo</small>
         </a>
         <a routerLink="/catalog" [queryParams]="{ category: 'sapatilhas' }">
-          <img src="/assets/images/products/sapatilha-luna.png" alt="">
-          <span>Sapatilhas</span>
+          <span class="category-image"><img src="/assets/images/products/sapatilha-luna.png" alt="Sapatilhas femininas"></span>
+          <strong>Sapatilhas</strong>
+          <small>Leveza para todos os dias</small>
         </a>
         <a routerLink="/catalog" [queryParams]="{ category: 'botas' }">
-          <img src="/assets/images/products/bota-iris.png" alt="">
-          <span>Botas</span>
+          <span class="category-image"><img src="/assets/images/products/bota-iris.png" alt="Botas femininas"></span>
+          <strong>Botas</strong>
+          <small>Textura e personalidade</small>
         </a>
         <a routerLink="/catalog" [queryParams]="{ category: 'sandalias' }">
-          <img src="/assets/images/products/sandalia-serena.png" alt="">
-          <span>Sandálias</span>
+          <span class="category-image"><img src="/assets/images/products/sandalia-serena.png" alt="Sandálias femininas"></span>
+          <strong>Sandálias</strong>
+          <small>Liberdade em movimento</small>
         </a>
         <a routerLink="/catalog" [queryParams]="{ category: 'tenis' }">
-          <img src="/assets/images/products/tenis-flora.png" alt="">
-          <span>Tênis</span>
+          <span class="category-image"><img src="/assets/images/products/tenis-flora.png" alt="Tênis femininos"></span>
+          <strong>Tênis</strong>
+          <small>Conforto com intenção</small>
         </a>
         <a routerLink="/catalog" [queryParams]="{ category: 'mocassins' }">
-          <img src="/assets/images/products/mocassim-alba.png" alt="">
-          <span>Mocassins</span>
+          <span class="category-image"><img src="/assets/images/products/mocassim-alba.png" alt="Mocassins femininos"></span>
+          <strong>Mocassins</strong>
+          <small>Clássicos contemporâneos</small>
         </a>
       </div>
     </div>
@@ -62,10 +70,10 @@
     <div class="container">
       <div class="section-heading heading-row">
         <div>
-          <span class="eyebrow">Curadoria FemStep</span>
+          <span class="eyebrow">Curadoria MOVAZU</span>
           <h2>Escolhas em destaque</h2>
         </div>
-        <a routerLink="/catalog">Ver todos os produtos</a>
+        <a routerLink="/catalog" class="text-link">Ver toda a coleção</a>
       </div>
 
       <div class="loading-container" *ngIf="isLoading">
@@ -81,27 +89,30 @@
 
       <div class="empty-state" *ngIf="!isLoading && featuredProducts.length === 0">
         <h3>Estamos renovando a vitrine</h3>
-        <p>O catálogo completo continua disponível para você.</p>
-        <a routerLink="/catalog" class="primary-button">Ver catálogo</a>
+        <p>Enquanto isso, a coleção completa continua disponível para você.</p>
+        <a routerLink="/catalog" class="primary-button">Ver coleção</a>
       </div>
     </div>
   </section>
 
-  <section class="editorial">
-    <div class="container editorial-grid">
-      <div class="editorial-media">
-        <img
-          src="/assets/images/products/tenis-nuvem.png"
-          alt="Tênis feminino em destaque"
-          loading="lazy"
-        >
+  <section class="brand-story">
+    <div class="container story-grid">
+      <div class="story-media">
+        <img src="/assets/brand/movazu-packaging.webp" alt="Embalagens premium da MOVAZU" loading="lazy">
       </div>
-      <div class="editorial-copy">
-        <span class="eyebrow">Conforto que acompanha</span>
-        <h2>Leveza para viver o dia do seu jeito</h2>
-        <p>Nossa seleção combina materiais agradáveis, formas versáteis e detalhes que tornam cada passo mais confiante.</p>
-        <a routerLink="/catalog" [queryParams]="{ category: 'tenis' }" class="primary-button">Conhecer tênis</a>
+      <div class="story-copy">
+        <span class="eyebrow">A nossa essência</span>
+        <h2>Movimento também é identidade.</h2>
+        <p>A MOVAZU nasce do encontro entre liberdade e presença. Criamos calçados femininos com olhar brasileiro, acabamento cuidadoso e conforto que não pede licença para ser elegante.</p>
+        <a routerLink="/catalog" class="light-button">Descubra a MOVAZU</a>
       </div>
+    </div>
+  </section>
+
+  <section class="brand-quote">
+    <div class="container">
+      <blockquote>“Não é apenas onde você chega. É como você escolhe caminhar.”</blockquote>
+      <span>MOVAZU · ELEGÂNCIA EM MOVIMENTO</span>
     </div>
   </section>
 </div>

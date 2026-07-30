@@ -59,7 +59,7 @@ export class AdminPageComponent implements OnInit {
     categoryId: [0, [Validators.required, Validators.min(1)]],
     featured: [false],
     material: ['Sintético premium'],
-    brand: ['FemStep'],
+    brand: ['MOVAZU'],
     imageUrl: ['', Validators.required],
     sizes: ['34,35,36,37,38,39', Validators.required],
     colors: ['Preto', Validators.required],
@@ -75,7 +75,7 @@ export class AdminPageComponent implements OnInit {
     categoryId: [0, [Validators.required, Validators.min(1)]],
     featured: [false],
     material: [''],
-    brand: ['FemStep']
+    brand: ['MOVAZU']
   });
 
   readonly variantCreateForm = this.formBuilder.nonNullable.group({
@@ -326,7 +326,7 @@ export class AdminPageComponent implements OnInit {
           categoryId: this.categories[0]?.id ?? 0,
           featured: false,
           material: 'Sintético premium',
-          brand: 'FemStep',
+          brand: 'MOVAZU',
           sizes: '34,35,36,37,38,39',
           colors: 'Preto',
           stock: 5
@@ -351,7 +351,7 @@ export class AdminPageComponent implements OnInit {
           categoryId: details.categoryId,
           featured: details.featured,
           material: details.material ?? '',
-          brand: details.brand ?? 'FemStep'
+          brand: details.brand ?? 'MOVAZU'
         });
       },
       error: error => this.handleError(error)

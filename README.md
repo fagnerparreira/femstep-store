@@ -1,4 +1,4 @@
-# FemStep Store
+# MOVAZU
 
 Mini e-commerce full stack de calçados femininos, com catálogo, autenticação,
 carrinho persistente, checkout, pedidos, pagamento sandbox, controle de estoque

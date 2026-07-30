@@ -5,6 +5,6 @@ export const catalogRoutes: Routes = [
   {
     path: '',
     component: CatalogPageComponent,
-    title: 'FemStep Store - Catálogo'
+    title: 'MOVAZU - Catálogo'
   }
 ];

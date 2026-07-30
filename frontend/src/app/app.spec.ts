@@ -22,7 +22,7 @@ describe('App', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.logo')?.textContent).toContain('FemStep');
+    expect(compiled.querySelector<HTMLImageElement>('.logo img')?.alt).toContain('MOVAZU');
     expect(compiled.querySelector('app-main-layout')).toBeTruthy();
   });
 });

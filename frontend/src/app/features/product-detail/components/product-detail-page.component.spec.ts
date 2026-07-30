@@ -25,7 +25,7 @@ const product: Product = {
   imageAlt: 'Scarpin Celeste',
   category: 'Saltos',
   categorySlug: 'saltos',
-  brand: 'FemStep',
+  brand: 'MOVAZU',
   material: 'Tecido',
   featured: false,
   active: true,

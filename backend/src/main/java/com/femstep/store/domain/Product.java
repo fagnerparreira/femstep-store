@@ -30,7 +30,7 @@ public class Product extends BaseEntity {
     private String material;
 
     @Column(nullable = false)
-    private String brand = "FemStep";
+    private String brand = "MOVAZU";
 
     @Column(name = "weight_kg", nullable = false, precision = 8, scale = 3)
     private BigDecimal weightKg;

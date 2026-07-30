@@ -1,6 +1,6 @@
-# FemStep Store — Frontend
+# MOVAZU — Frontend
 
-Aplicação Angular 21 responsiva para a loja FemStep.
+Aplicação Angular 21 responsiva para a loja MOVAZU.
 
 ## Funcionalidades
 

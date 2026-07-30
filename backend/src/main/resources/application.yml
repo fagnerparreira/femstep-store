@@ -64,7 +64,7 @@ admin:
 notifications:
   email:
     enabled: ${NOTIFICATIONS_EMAIL_ENABLED:false}
-    from: ${EMAIL_FROM:nao-responda@femstep.local}
+    from: ${EMAIL_FROM:nao-responda@movazu.local}
   public-url: ${PUBLIC_APP_URL:http://localhost:4200}
   poll-interval-ms: ${NOTIFICATIONS_POLL_INTERVAL_MS:5000}
 

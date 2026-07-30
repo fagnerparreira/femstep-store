@@ -140,7 +140,7 @@ public class AdminService {
                     request.featured(),
                     request.categoryId(),
                     blankToNull(request.material()),
-                    blankToNull(request.brand()) == null ? "FemStep" : request.brand().trim()
+                    blankToNull(request.brand()) == null ? "MOVAZU" : request.brand().trim()
             );
             jdbcTemplate.update("""
                     INSERT INTO product_images (
@@ -191,7 +191,7 @@ public class AdminService {
                     request.categoryId(),
                     request.featured(),
                     blankToNull(request.material()),
-                    blankToNull(request.brand()) == null ? "FemStep" : request.brand().trim(),
+                    blankToNull(request.brand()) == null ? "MOVAZU" : request.brand().trim(),
                     productId
             );
             if (updated != 1) {

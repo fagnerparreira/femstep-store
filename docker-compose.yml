@@ -56,7 +56,7 @@ services:
       EMAIL_SMTP_AUTH: ${EMAIL_SMTP_AUTH:-false}
       EMAIL_STARTTLS_ENABLED: ${EMAIL_STARTTLS_ENABLED:-false}
       EMAIL_STARTTLS_REQUIRED: ${EMAIL_STARTTLS_REQUIRED:-false}
-      EMAIL_FROM: ${EMAIL_FROM:-nao-responda@femstep.local}
+      EMAIL_FROM: ${EMAIL_FROM:-nao-responda@movazu.local}
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:4200}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"

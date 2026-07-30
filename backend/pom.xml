@@ -15,7 +15,7 @@
     <groupId>com.femstep</groupId>
     <artifactId>store</artifactId>
     <version>1.0.0</version>
-    <name>FemStep Store</name>
+    <name>MOVAZU</name>
     <description>E-commerce platform backend API</description>
     
     <properties>

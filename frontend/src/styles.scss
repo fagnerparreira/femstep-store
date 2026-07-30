@@ -1,25 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('/assets/fonts/CormorantGaramond-SemiBold.ttf') format('truetype');
+  font-display: swap;
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'Manrope';
+  src: url('/assets/fonts/Manrope-Regular.ttf') format('truetype');
+  font-display: swap;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Manrope';
+  src: url('/assets/fonts/Manrope-SemiBold.ttf') format('truetype');
+  font-display: swap;
+  font-weight: 600 700;
+}
 
 :root {
-  --color-brand: #7a3f36;
-  --color-brand-dark: #5e2f29;
-  --color-brand-soft: #ead8cf;
-  --color-accent: #c98767;
-  --color-ink: #2c2725;
-  --color-muted: #6f6763;
-  --color-border: #e8e0dc;
-  --color-surface: #fffdfa;
-  --color-surface-alt: #f7f1ed;
+  --color-brand: #351a2f;
+  --color-brand-dark: #241020;
+  --color-brand-soft: #eadfe7;
+  --color-accent: #d66d5d;
+  --color-gold: #c9a66b;
+  --color-ink: #201b1d;
+  --color-muted: #6d6267;
+  --color-border: #dfd4d8;
+  --color-surface: #f7f2ea;
+  --color-surface-alt: #efe8df;
   --color-white: #ffffff;
   --color-success: #276749;
   --color-danger: #a61b1b;
-  --shadow-soft: 0 12px 36px rgba(63, 42, 34, 0.08);
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 28px;
-  --container: 1240px;
-  --font-body: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Playfair Display', Georgia, serif;
+  --shadow-soft: 0 18px 55px rgba(53, 26, 47, 0.12);
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 30px;
+  --container: 1280px;
+  --font-body: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
 }
 
 *,
@@ -41,6 +61,11 @@ body {
   font-family: var(--font-body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-white);
 }
 
 button,
@@ -65,7 +90,7 @@ img {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(201, 135, 103, 0.55);
+  outline: 3px solid rgba(214, 109, 93, 0.55);
   outline-offset: 3px;
 }
 

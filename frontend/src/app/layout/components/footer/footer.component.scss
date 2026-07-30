@@ -1,7 +1,7 @@
 .benefits {
   border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface-alt);
+  background: var(--color-surface);
 }
 
 .benefits-grid {
@@ -29,6 +29,9 @@
 .benefits strong {
   margin-bottom: 5px;
   color: var(--color-brand);
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+  font-weight: 600;
 }
 
 .benefits span {
@@ -38,8 +41,8 @@
 
 .footer {
   padding-top: 64px;
-  background: #2d2725;
-  color: #f7efeb;
+  background: var(--color-ink);
+  color: var(--color-surface);
 }
 
 .footer-grid {
@@ -49,10 +52,9 @@
   padding-bottom: 56px;
 }
 
-.footer h2 {
-  margin: 0 0 18px;
-  font-family: var(--font-display);
-  font-size: 2rem;
+.footer-brand img {
+  width: 285px;
+  margin: -28px 0 -8px;
 }
 
 .footer h3 {
@@ -64,7 +66,7 @@
 
 .footer p,
 .footer a {
-  color: #cfc1bb;
+  color: #d7cbd1;
   font-size: 0.84rem;
 }
 
@@ -122,8 +124,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  border-top: 1px solid #4b403c;
-  color: #a99b95;
+  border-top: 1px solid #493d43;
+  color: #a99ca2;
   font-size: 0.72rem;
 }
 

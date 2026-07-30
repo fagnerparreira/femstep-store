@@ -119,7 +119,7 @@ export class AuthPageComponent implements OnInit {
 
   get title(): string {
     return {
-      login: 'Entre na FemStep',
+      login: 'Entre na MOVAZU',
       register: 'Vamos caminhar juntas',
       forgot: 'Recupere seu acesso',
       reset: 'Defina uma nova senha',

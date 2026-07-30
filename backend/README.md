@@ -1,4 +1,4 @@
-# FemStep Store — Backend
+# MOVAZU — Backend
 
 API Java 21 com Spring Boot 3.5 e PostgreSQL.
 
